@@ -15,5 +15,7 @@ public interface LeaveService {
 
     List<EmployeeLeaveResponseDto> getEmployeeLeaveBalance(UUID empId);
 
+    List<LeaveHistoryResponseDto> getLeaveHistory(UUID empId);
+
 
 }

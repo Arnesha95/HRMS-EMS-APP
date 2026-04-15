@@ -19,6 +19,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.time.Instant;
 
 
 @RestControllerAdvice
@@ -33,12 +34,11 @@ public class GlobalExceptionHandler {
             DisabledException.class,
             ResponseStatusException.class
     })
-
     public ResponseEntity<ApiError> handleAuthException(Exception e, HttpServletRequest request){
         logger.info("Exception : {}", e.getMessage());
 
         var apiError = ApiError.of(
-                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.UNAUTHORIZED.value(),
                 "Unauthorized",
                 e.getMessage(),
                 request.getRequestURI()
@@ -46,26 +46,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiError);
     }
-//
-//    @ExceptionHandler({
-//            RuntimeException.class,
-//            NoResourceFoundException.class
-//    })
-//    public ResponseEntity<ApiError> handleRuntimeException(
-//            Exception ex,
-//            HttpServletRequest request
-//    ) {
-//        logger.error("Runtime Exception: {}", ex.getMessage());
-//
-//        var apiError = ApiError.of(
-//                HttpStatus.NOT_FOUND.value(),
-//                "Not Found",
-//                ex.getMessage(),
-//                request.getRequestURI()
-//        );
-//
-//        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiError);
-//    }
+
 
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<ApiError> handleNullPointer(
@@ -178,6 +159,28 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
     }
+
+    @ExceptionHandler(AttendanceNotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFound(
+            AttendanceNotFoundException ex,
+            HttpServletRequest request
+    ) {
+
+        ApiError error = ApiError.of(
+                404,
+                "Not Found",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+
+        return ResponseEntity.status(404).body(error);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> handleRuntime(RuntimeException ex) {
+        return ResponseEntity.status(400).body(ex.getMessage());
+    }
+
 
 
 //    @ExceptionHandler(Exception.class)

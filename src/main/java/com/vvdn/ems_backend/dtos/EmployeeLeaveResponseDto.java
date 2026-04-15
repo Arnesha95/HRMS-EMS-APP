@@ -13,9 +13,9 @@ public class EmployeeLeaveResponseDto {
 
     private UUID empLeaveId;
     private String leaveType;
-    private float totalLeaves;
-    private float usedLeaves;
-    private float remainingLeaves;
-    private int year;
+    private Float totalLeaves;
+    private Float usedLeaves;
+    private Float remainingLeaves;
+    private Short year;
 
 }

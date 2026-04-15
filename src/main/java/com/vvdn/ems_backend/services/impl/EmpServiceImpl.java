@@ -3,10 +3,7 @@ package com.vvdn.ems_backend.services.impl;
 import com.vvdn.ems_backend.dtos.EmpRequestDto;
 import com.vvdn.ems_backend.dtos.EmpResponseDto;
 import com.vvdn.ems_backend.entity.*;
-import com.vvdn.ems_backend.repository.DepartmentRepository;
-import com.vvdn.ems_backend.repository.DesignationRepository;
-import com.vvdn.ems_backend.repository.EmpRepository;
-import com.vvdn.ems_backend.repository.UserRepository;
+import com.vvdn.ems_backend.repository.*;
 import com.vvdn.ems_backend.services.EmpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +23,7 @@ public class EmpServiceImpl implements EmpService {
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
     private final DesignationRepository designationRepository;
+    private final EmploymentTypeRepository employmentTypeRepository;
 
     private String generateDefaultPassword() {
         return "Emp@" + System.currentTimeMillis();
@@ -46,6 +44,10 @@ public class EmpServiceImpl implements EmpService {
         Designation designation = designationRepository.findById(request.getDesignationId())
                 .orElseThrow(() -> new RuntimeException("Designation not found"));
 
+        EmploymentType empType = employmentTypeRepository.findById(request.getEmploymentTypeId())
+                .orElseThrow(() -> new RuntimeException("Employment Type not found"));
+
+
         Employee employee = Employee.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
@@ -61,6 +63,7 @@ public class EmpServiceImpl implements EmpService {
                 .offerLetterNum(request.getOfferLetterNum())
                 .releaseDate(request.getReleaseDate())
                 .reportingManager(request.getReportingManager())
+                .employmentType(empType)
                 .noticePeriod(request.getNoticePeriod())
                 .isActive(true)
                 .createdBy(request.getCreatedBy())
@@ -89,6 +92,7 @@ public class EmpServiceImpl implements EmpService {
                 .message("Employee added successfully")
                 .username(username)
                 .password(defaultPassword)
+                .empId(savedEmployee.getEmpId())
                 .build();
     }
 
@@ -145,6 +149,17 @@ public class EmpServiceImpl implements EmpService {
 
         if (request.getReportingManager() != null)
             employee.setReportingManager(request.getReportingManager());
+
+
+        if (request.getEmploymentTypeId() != null) {
+
+            EmploymentType empType = employmentTypeRepository.findById(request.getEmploymentTypeId())
+                    .orElseThrow(() -> new RuntimeException("Employment Type not found"));
+
+            employee.setEmploymentType(empType);
+
+        }
+
 
         if (request.getNoticePeriod() != null)
             employee.setNoticePeriod(request.getNoticePeriod());

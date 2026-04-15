@@ -27,6 +27,8 @@ public class EmpRequestDto {
 
     private UUID reportingManager;
 
+    private UUID employmentTypeId;
+
     private Short noticePeriod;
 
     private UUID createdBy;

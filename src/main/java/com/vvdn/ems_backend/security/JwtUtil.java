@@ -82,6 +82,10 @@ public class JwtUtil {
         return extractAllClaims(token).get("role", String.class);
     }
 
+    public String extractEmployeeId(String token) {
+        return extractAllClaims(token).get("empId", String.class);
+    }
+
 
 
     //validate token

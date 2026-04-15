@@ -50,7 +50,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     logger.debug("Setting up authorization rules: /auth/login is public, all others require authentication");
 
-                    auth.requestMatchers("/auth/login", "/auth/refresh", "/auth/logout").permitAll()
+                    auth.requestMatchers("/auth/login",
+                                    "/auth/refresh",
+                                    "/actuator/health",
+                                    "/auth/logout").permitAll()
                             .anyRequest().authenticated();
                 })
                 .sessionManagement(session -> {

@@ -35,6 +35,7 @@ public class AuthController {
 
     private final UserRepository userRepository;
 
+
     public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, AuthService authService, UserRepository userRepository) {
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
@@ -42,6 +43,7 @@ public class AuthController {
         this.userRepository = userRepository;
         logger.info("AuthController initialized");
     }
+
 
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest request) {

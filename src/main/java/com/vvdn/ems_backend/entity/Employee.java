@@ -65,6 +65,10 @@ public class Employee {
     @Column(name = "reporting_manager")
     private UUID reportingManager;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "emp_type_id", nullable = false)
+    private EmploymentType employmentType;
+
     @Column(name = "is_active")
     private Boolean isActive;
 

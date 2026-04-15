@@ -28,7 +28,7 @@ public class LeaveServiceImpl implements LeaveService {
     private final EmployeeLeaveRepository empLeaveRepo;
     private final LeavePolicyRepository leavePolicyRepository;
     private final EmpRepository employeeRepository;
-    private final LeaveRepository leaveApplicationRepository;
+    private final LeaveRepository leaveRepository;
 
 
     @Override
@@ -193,6 +193,40 @@ public class LeaveServiceImpl implements LeaveService {
 
         return response;
 
+    }
+
+    @Override
+    public List<LeaveHistoryResponseDto> getLeaveHistory(UUID empId) {
+
+        List<LeaveApplication> applications =
+                leaveRepo.findByEmployeeLeaves_Employee_EmpIdOrderByCreatedOnDesc(empId);
+
+        if (applications.isEmpty()) {
+            throw new BadRequestException("No leave history found");
+        }
+
+        List<LeaveHistoryResponseDto> response = new ArrayList<>();
+
+        for (LeaveApplication leave : applications) {
+
+            LeaveType type = leave.getEmployeeLeaves()
+                    .getLeavePolicy()
+                    .getLeaveType();
+
+            LeaveHistoryResponseDto dto = LeaveHistoryResponseDto.builder()
+                    .leaveApplicationId(leave.getLeaveApplicationId())
+                    .leaveType(type.getType())
+                    .noOfDays(leave.getNoOfDays())
+                    .startDate(leave.getStartDate())
+                    .endDate(leave.getEndDate())
+                    .status(leave.getStatus())
+                    .remarks(leave.getRemarks())
+                    .build();
+
+            response.add(dto);
+        }
+
+        return response;
     }
 }
 

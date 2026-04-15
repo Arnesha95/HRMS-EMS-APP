@@ -3,9 +3,16 @@ package com.vvdn.ems_backend.repository;
 import com.vvdn.ems_backend.entity.LeaveApplication;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 public interface LeaveRepository extends JpaRepository<LeaveApplication, UUID> {
 
+    List<LeaveApplication> findByEmployeeLeaves_Employee_EmpIdOrderByCreatedOnDesc(UUID empId);
 
-}
+    boolean existsByEmployeeLeaves_Employee_EmpIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+            UUID empId,
+            LocalDate startDate,
+            LocalDate endDate
+    );}

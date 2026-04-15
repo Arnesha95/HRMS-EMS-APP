@@ -34,14 +34,21 @@ public class LeaveController {
         );
     }
 
-    @PostMapping("/credit-yearly")
+    @PostMapping("/leaves/credit-yearly")
     public ResponseEntity<LeaveApprovalResponseDto> creditYearly(@RequestParam int year) {
         return ResponseEntity.ok(leaveService.creditYearlyLeaves(year));
     }
 
-    @GetMapping("/balance/{empId}")
+    @GetMapping("/leaves/balance/{empId}")
     public List<EmployeeLeaveResponseDto> getLeaveBalance(@PathVariable UUID empId) {
         return leaveService.getEmployeeLeaveBalance(empId);
+    }
+
+    @GetMapping("/leaves/history")
+    public ResponseEntity<List<LeaveHistoryResponseDto>> getLeaveHistory(
+            @RequestParam UUID empId) {
+
+        return ResponseEntity.ok(leaveService.getLeaveHistory(empId));
     }
 
 }
