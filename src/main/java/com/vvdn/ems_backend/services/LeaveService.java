@@ -17,5 +17,6 @@ public interface LeaveService {
 
     List<LeaveHistoryResponseDto> getLeaveHistory(UUID empId);
 
+    List<LeaveHistoryResponseDto> getAllLeaveRequests(String status);
 
 }

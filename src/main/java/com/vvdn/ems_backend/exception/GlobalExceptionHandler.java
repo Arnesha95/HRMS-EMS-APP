@@ -11,15 +11,15 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.client.HttpClientErrorException;
+
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import java.time.Instant;
+
 
 
 @RestControllerAdvice
@@ -201,36 +201,4 @@ public class GlobalExceptionHandler {
 //    }
 
 
-//    @ExceptionHandler(IllegalArgumentException.class)
-//    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException exception){
-//        ErrorResponse internalServerError = new ErrorResponse(exception.getMessage(), HttpStatus.BAD_REQUEST, 400);
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(internalServerError);
-//
-//    }
-//
-//    @ExceptionHandler(HttpMessageNotReadableException.class)
-//    public ResponseEntity<ErrorResponse> handleInvalidJson(
-//            HttpMessageNotReadableException ex) {
-//
-//        ErrorResponse error = new ErrorResponse(
-//                "Invalid JSON format",
-//                HttpStatus.BAD_REQUEST,
-//                400
-//        );
-//
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-//    }
-//
-//    @ExceptionHandler(NoResourceFoundException.class)
-//    public ResponseEntity<ErrorResponse> handleNoResourceFoundException(
-//            NoResourceFoundException ex) {
-//
-//        ErrorResponse error = new ErrorResponse(
-//                "API endpoint not found",
-//                HttpStatus.NOT_FOUND,
-//                404
-//        );
-//
-//        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-//    }
 }

@@ -25,8 +25,8 @@ public class LeaveApplication {
     @JoinColumn(name = "emp_leave_id", nullable = false)
     private EmployeeLeave employeeLeaves;
 
-    @Column(name = "status")
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private LeaveStatus status;
 
     @Column(name = "leave_day")
     private String leaveDay;
@@ -58,11 +58,22 @@ public class LeaveApplication {
     @Column(name = "created_on")
     private Instant createdOn;
 
+    @Column(name = "updated_by")
+    private UUID updatedBy;
+
+    @Column(name = "updated_on")
+    private Instant updatedOn;
+
+
     @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();
         if (createdOn == null) createdOn = now;
+    }
 
+    @PreUpdate
+    protected void onUpdate() {
+        updatedOn = Instant.now();
     }
 }
 

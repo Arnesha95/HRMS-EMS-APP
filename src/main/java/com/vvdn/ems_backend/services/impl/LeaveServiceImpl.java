@@ -49,7 +49,7 @@ public class LeaveServiceImpl implements LeaveService {
 
         LeaveApplication leave = LeaveApplication.builder()
                 .employeeLeaves(empLeaves)
-                .status("PENDING")
+                .status(LeaveStatus.PENDING)
                 .leaveDay(request.getLeaveDay())
                 .description(request.getDescription())
                 .noOfDays(request.getNoOfDays())
@@ -71,13 +71,22 @@ public class LeaveServiceImpl implements LeaveService {
         LeaveApplication leave = leaveRepo.findById(request.getLeaveApplicationId())
                 .orElseThrow(() -> new RuntimeException("Leave not found"));
 
-        if (!leave.getStatus().equals("PENDING")) {
+
+        if (leave.getStatus() != LeaveStatus.PENDING) {
             throw new BadRequestException("Leave already processed");
         }
 
         EmployeeLeave empLeaves = leave.getEmployeeLeaves();
 
-        if ("APPROVED".equalsIgnoreCase(request.getStatus())) {
+        LeaveStatus newStatus;
+
+        try {
+            newStatus = LeaveStatus.valueOf(request.getStatus().toUpperCase());
+        } catch (Exception e) {
+            throw new BadRequestException("Invalid status value");
+        }
+
+        if (newStatus == LeaveStatus.APPROVED) {
 
             if (empLeaves.getRemainingLeaves() < leave.getNoOfDays()) {
                 throw new BadRequestException("Not enough leave balance");
@@ -91,7 +100,7 @@ public class LeaveServiceImpl implements LeaveService {
             empLeaveRepo.save(empLeaves);
         }
 
-        leave.setStatus(request.getStatus());
+        leave.setStatus(newStatus);
         leave.setAppRejBy(hrId);
         leave.setAppRejOn(LocalDate.now());
         leave.setRemarks(request.getRemarks());
@@ -219,7 +228,58 @@ public class LeaveServiceImpl implements LeaveService {
                     .noOfDays(leave.getNoOfDays())
                     .startDate(leave.getStartDate())
                     .endDate(leave.getEndDate())
-                    .status(leave.getStatus())
+                    .status(leave.getStatus().name())
+                    .remarks(leave.getRemarks())
+                    .build();
+
+            response.add(dto);
+        }
+
+        return response;
+    }
+
+
+
+    @Override
+    public List<LeaveHistoryResponseDto> getAllLeaveRequests(String status) {
+
+        List<LeaveApplication> applications;
+
+        if (status == null || status.equalsIgnoreCase("ALL")) {
+            applications = leaveRepo.findAllByOrderByCreatedOnDesc();
+        } else {
+            LeaveStatus leaveStatus;
+
+            try {
+                leaveStatus = LeaveStatus.valueOf(status.toUpperCase());
+            } catch (Exception e) {
+                throw new BadRequestException("Invalid status");
+            }
+
+            applications = leaveRepo.findByStatusOrderByCreatedOnDesc(leaveStatus);
+        }
+
+        if (applications.isEmpty()) {
+            throw new BadRequestException("No leave requests found");
+        }
+
+        List<LeaveHistoryResponseDto> response = new ArrayList<>();
+
+        for (LeaveApplication leave : applications) {
+
+            LeaveType type = leave.getEmployeeLeaves()
+                    .getLeavePolicy()
+                    .getLeaveType();
+
+            Employee emp = leave.getEmployeeLeaves().getEmployee();
+
+            LeaveHistoryResponseDto dto = LeaveHistoryResponseDto.builder()
+                    .leaveApplicationId(leave.getLeaveApplicationId())
+                    .leaveType(type.getType())
+                    .noOfDays(leave.getNoOfDays())
+                    .startDate(leave.getStartDate())
+                    .endDate(leave.getEndDate())
+                    .status(leave.getStatus().name()) // ✅ convert enum → String for response
                     .remarks(leave.getRemarks())
                     .build();
 

@@ -53,7 +53,8 @@ public class SecurityConfig {
                     auth.requestMatchers("/auth/login",
                                     "/auth/refresh",
                                     "/actuator/health",
-                                    "/auth/logout").permitAll()
+                                    "/auth/logout",
+                                    "/api/users").permitAll()
                             .anyRequest().authenticated();
                 })
                 .sessionManagement(session -> {

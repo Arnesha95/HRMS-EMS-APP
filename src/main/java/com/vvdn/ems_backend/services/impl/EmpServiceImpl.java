@@ -178,13 +178,21 @@ public class EmpServiceImpl implements EmpService {
 
     @Override
     public EmpResponseDto deactivateEmployee(UUID id) {
+
         Employee employee = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
+
         employee.setIsActive(false);
         employee.setUpdatedOn(Instant.now());
-
         repository.save(employee);
+
+
+        userRepository.findByEmployee(employee).ifPresent(user -> {
+            user.setActive(false);
+            user.setUpdatedOn(Instant.now());
+            userRepository.save(user);
+        });
 
         return EmpResponseDto.builder()
                 .message("Employee deactivated successfully")

@@ -94,23 +94,11 @@ public class AuthController {
                     user.getUsername()
             );
 
-
-//            logger.warn("Authentication returned unauthenticated state for user: {}", request.getUsername());
-//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
-
         } catch (AuthenticationException exception) {
             logger.warn("Authentication failed for user '{}': {}", request.getUsername(), exception.getMessage());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials", exception);
         }
 
-//        try {
-//            return authService.login(
-//                    request.getUsername(),
-//                    request.getPassword()
-//            );
-//        } catch (Exception e) {
-//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
-//        }
     }
     @PostMapping("/refresh")
     public LoginResponse refresh(@RequestBody (required = false)RefreshTokenRequest request) {

@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/leaves")
 @RequiredArgsConstructor
 public class LeaveController {
 
     private final LeaveService leaveService;
 
-    @PostMapping("/leaves/apply")
+    @PostMapping("/apply")
     public ResponseEntity<?> applyLeave(
             @RequestBody ApplyLeaveRequestDto request
     ) {
@@ -25,7 +25,8 @@ public class LeaveController {
         );
     }
 
-    @PostMapping("/leaves/approve-reject")
+
+    @PostMapping("/approve-reject")
     public ResponseEntity<LeaveApprovalResponseDto> approveReject(
             @RequestBody LeaveApprovalRequestDto request
     ) {
@@ -34,21 +35,32 @@ public class LeaveController {
         );
     }
 
-    @PostMapping("/leaves/credit-yearly")
+
+    @PostMapping("/credit-yearly")
     public ResponseEntity<LeaveApprovalResponseDto> creditYearly(@RequestParam int year) {
         return ResponseEntity.ok(leaveService.creditYearlyLeaves(year));
     }
 
-    @GetMapping("/leaves/balance/{empId}")
+
+    @GetMapping("/balance/{empId}")
     public List<EmployeeLeaveResponseDto> getLeaveBalance(@PathVariable UUID empId) {
         return leaveService.getEmployeeLeaveBalance(empId);
     }
 
-    @GetMapping("/leaves/history")
+
+    @GetMapping("/history")
     public ResponseEntity<List<LeaveHistoryResponseDto>> getLeaveHistory(
             @RequestParam UUID empId) {
 
         return ResponseEntity.ok(leaveService.getLeaveHistory(empId));
     }
 
+    @GetMapping("/requests")
+    public ResponseEntity<List<LeaveHistoryResponseDto>> getAllLeaveRequests(
+            @RequestParam(required = false) String status
+    ) {
+        return ResponseEntity.ok(
+                leaveService.getAllLeaveRequests(status)
+        );
+    }
 }
