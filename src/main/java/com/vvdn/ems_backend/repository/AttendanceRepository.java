@@ -1,6 +1,8 @@
 package com.vvdn.ems_backend.repository;
 
 import com.vvdn.ems_backend.entity.EmployeeAttendance;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
@@ -15,4 +17,17 @@ public interface AttendanceRepository extends JpaRepository<EmployeeAttendance, 
     List<EmployeeAttendance> findByDate(LocalDate date);
 
     List<EmployeeAttendance> findByEmpId(UUID empId);
+
+    List<EmployeeAttendance> findByEmpIdAndDateBetween(
+            UUID empId,
+            LocalDate startDate,
+            LocalDate endDate
+    );
+
+    Page<EmployeeAttendance> findByEmpIdAndDateBetween(
+            UUID empId,
+            LocalDate startDate,
+            LocalDate endDate,
+            Pageable pageable
+    );
 }

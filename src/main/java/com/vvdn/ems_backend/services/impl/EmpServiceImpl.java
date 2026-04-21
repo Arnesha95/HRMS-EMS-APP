@@ -2,6 +2,7 @@ package com.vvdn.ems_backend.services.impl;
 
 import com.vvdn.ems_backend.dtos.EmpRequestDto;
 import com.vvdn.ems_backend.dtos.EmpResponseDto;
+import com.vvdn.ems_backend.dtos.EmployeeSummaryDto;
 import com.vvdn.ems_backend.entity.*;
 import com.vvdn.ems_backend.repository.*;
 import com.vvdn.ems_backend.services.EmpService;
@@ -12,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,6 +39,7 @@ public class EmpServiceImpl implements EmpService {
 
     private final PasswordEncoder onboardingPasswordEncoder;
 
+
     @Override
     public EmpResponseDto addEmployee(EmpRequestDto request) {
         Department department = departmentRepository.findById(request.getDeptId())
@@ -53,6 +57,7 @@ public class EmpServiceImpl implements EmpService {
                 .lastName(request.getLastName())
                 .email(request.getEmail())
                 .phone(request.getPhone())
+                .dateOfBirth(request.getDateOfBirth())
                 .address(request.getAddress())
                 .department(department)
                 .designation(designation)
@@ -67,19 +72,29 @@ public class EmpServiceImpl implements EmpService {
                 .noticePeriod(request.getNoticePeriod())
                 .isActive(true)
                 .createdBy(request.getCreatedBy())
-                .createdOn(Instant.now())
                 .build();
 
+
         Employee savedEmployee = repository.save(employee);
+
 
         String username = savedEmployee.getEmail();
         String defaultPassword = generateDefaultPassword();
         String encodedPassword = onboardingPasswordEncoder.encode(defaultPassword);
 
+
+        Role assignedRole;
+        if (request.getRole() != null) {
+            assignedRole = request.getRole();
+        } else {
+            assignedRole = Role.EMPLOYEE;
+        }
+
+
         User user = User.builder()
                 .username(username)
                 .password(encodedPassword)
-                .role(Role.EMPLOYEE)
+                .role(assignedRole)
                 .employee(savedEmployee)
                 .isActive(true)
                 .createdBy(request.getCreatedBy())
@@ -97,9 +112,9 @@ public class EmpServiceImpl implements EmpService {
     }
 
     @Override
-    public EmpResponseDto updateEmployee(UUID id, EmpRequestDto request) {
+    public EmpResponseDto updateEmployee(UUID empId, EmpRequestDto request) {
 
-        Employee employee = repository.findById(id)
+        Employee employee = repository.findById(empId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
         if (request.getDeptId() != null) {
@@ -125,6 +140,9 @@ public class EmpServiceImpl implements EmpService {
 
         if (request.getPhone() != null)
             employee.setPhone(request.getPhone());
+
+        if (request.getDateOfBirth() != null)
+            employee.setDateOfBirth(request.getDateOfBirth());
 
         if (request.getAddress() != null)
             employee.setAddress(request.getAddress());
@@ -177,9 +195,9 @@ public class EmpServiceImpl implements EmpService {
     }
 
     @Override
-    public EmpResponseDto deactivateEmployee(UUID id) {
+    public EmpResponseDto deactivateEmployee(UUID empId) {
 
-        Employee employee = repository.findById(id)
+        Employee employee = repository.findById(empId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
 
@@ -200,13 +218,67 @@ public class EmpServiceImpl implements EmpService {
     }
 
     @Override
-    public Employee getEmployeeById(UUID id) {
-        return repository.findById(id)
+    public Employee getEmployeeById(UUID empId) {
+        return repository.findById(empId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
     }
 
     @Override
     public List<Employee> getAllEmployees() {
         return repository.findByIsActiveTrue();
+
+    }
+
+
+    @Override
+    public EmployeeSummaryDto getEmployeeSummary() {
+
+        long total = repository.count();
+        long active = repository.countByIsActiveTrue();
+        long inactive = repository.countByIsActiveFalse();
+
+        long totalOnboardings = total;
+
+
+        ZoneId zone = ZoneId.systemDefault();
+        LocalDate today = LocalDate.now(zone);
+
+
+        Instant startOfDay = today.atStartOfDay(zone).toInstant();
+        Instant endOfDay = today.plusDays(1).atStartOfDay(zone).toInstant();
+
+        long todayOnboardings =
+                repository.countByCreatedOnBetween(startOfDay, endOfDay);
+
+
+        LocalDate firstDayCurrentMonth = today.withDayOfMonth(1);
+        LocalDate firstDayPreviousMonth = firstDayCurrentMonth.minusMonths(1);
+
+        Instant startCurrentMonth = firstDayCurrentMonth.atStartOfDay(zone).toInstant();
+
+
+        long previousMonthTotal =
+                repository.countByCreatedOnBefore(startCurrentMonth);
+
+
+        long currentMonthTotal = total;
+
+
+        double growthPercentage = 0;
+
+        if (previousMonthTotal > 0) {
+            growthPercentage =
+                    ((double) (currentMonthTotal - previousMonthTotal)
+                            / previousMonthTotal) * 100;
+        }
+
+        return EmployeeSummaryDto.builder()
+                .totalEmployees(total)
+                .activeEmployees(active)
+                .inactiveEmployees(inactive)
+                .totalOnboardings(totalOnboardings)
+                .todayOnboardings(todayOnboardings)
+                .employeeGrowthPercentage(growthPercentage)
+                .build();
     }
 }

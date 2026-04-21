@@ -33,6 +33,9 @@ public class Employee {
     @Column(name = "phone")
     private String phone;
 
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
     @Column(name = "address")
     private String address;
 
@@ -86,6 +89,7 @@ public class Employee {
 
     @Column(name = "notice_period")
     private Short noticePeriod;
+
 
     @PrePersist
     protected void onCreate(){

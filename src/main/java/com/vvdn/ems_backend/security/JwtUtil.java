@@ -16,21 +16,13 @@ public class JwtUtil {
 
     private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
-//    public String generateToken(String username) {
-//        return Jwts.builder()
-//                .setSubject(username)
-//                .claim("type", "access")
-//                .setIssuedAt(new Date())
-//                .setExpiration(new Date(System.currentTimeMillis() + 86400000))
-//                .signWith(Keys.hmacShaKeyFor(SECRET.getBytes()))
-//                .compact();
-//    }
 
 
-    public String generateAccessToken(UUID id, String username, String role) {
+    public String generateAccessToken(UUID id, UUID empId, String username, String role) {
         return Jwts.builder()
                 .setSubject(username)
                 .claim("userId", id.toString())
+                .claim("empId", empId.toString())
                 .claim("role", role)
                 .claim("type", "access")
                 .setIssuedAt(new Date())
@@ -40,10 +32,11 @@ public class JwtUtil {
     }
 
 
-    public String generateRefreshToken(UUID id, String username, String role) {
+    public String generateRefreshToken(UUID id, UUID empId, String username, String role) {
         return Jwts.builder()
                 .setSubject(username)
                 .claim("userId", id.toString())
+                .claim("empId", empId.toString())
                 .claim("role", role)
                 .claim("type", "refresh")
                 .setIssuedAt(new Date())

@@ -73,4 +73,21 @@ public class AttendanceController {
 
         return attendanceService.getMonthlyAttendance(empId, year, month);
     }
+
+
+    @GetMapping("/history")
+    public List<DailyAttendanceDto> getAttendanceHistory(
+            @RequestParam UUID empId,
+
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate) {
+
+        return attendanceService.getAttendanceHistory(empId, startDate, endDate);
+
+    }
 }

@@ -24,4 +24,6 @@ public interface LeaveRepository extends JpaRepository<LeaveApplication, UUID> {
 
     List<LeaveApplication> findByStatusOrderByCreatedOnDesc(LeaveStatus status);
 
+    long countByStatus(LeaveStatus status);
+
 }

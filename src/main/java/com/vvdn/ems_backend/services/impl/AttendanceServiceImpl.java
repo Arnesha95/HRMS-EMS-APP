@@ -17,10 +17,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -114,7 +116,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     public DailyAttendanceDto getDailyAttendance(UUID empId, LocalDate date) {
 
-        // 1. Holiday
+
         Optional<HolidayCalendar> holiday =
                 holidayRepository.findByHolidayDateAndIsActiveTrue(date);
 
@@ -122,7 +124,7 @@ public class AttendanceServiceImpl implements AttendanceService {
             return buildResponse(empId, date, AttendanceStatus.HOLIDAY, "Holiday");
         }
 
-        // 2. Leave
+
         boolean onLeave = leaveRepository
                 .existsByEmployeeLeaves_Employee_EmpIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                         empId, date, date);
@@ -131,7 +133,7 @@ public class AttendanceServiceImpl implements AttendanceService {
             return buildResponse(empId, date, AttendanceStatus.LEAVE, "On Leave");
         }
 
-        // 3. Attendance
+
         Optional<EmployeeAttendance> attendance =
                 attendanceRepository.findByEmpIdAndDate(empId, date);
 
@@ -154,7 +156,7 @@ public class AttendanceServiceImpl implements AttendanceService {
             return buildResponseFromAttendance(att, AttendanceStatus.ABSENT);
         }
 
-        // 4. Default
+
         return buildResponse(empId, date, AttendanceStatus.ABSENT, "No record");
     }
 
@@ -217,5 +219,20 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .holidays(holiday)
                 .halfDays(halfDay)
                 .build();
+    }
+
+    @Override
+    public List<DailyAttendanceDto> getAttendanceHistory(
+            UUID empId,
+            LocalDate startDate,
+            LocalDate endDate) {
+
+        List<DailyAttendanceDto> history = new ArrayList<>();
+
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            history.add(getDailyAttendance(empId, date));
+        }
+
+        return history;
     }
 }

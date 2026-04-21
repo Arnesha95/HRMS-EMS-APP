@@ -45,7 +45,7 @@ public class LeavePolicyController {
         );
     }
 
-    @PutMapping("/leave-policy/{id}")
+    @PutMapping("/leave-policy/{policyId}")
     public ResponseEntity<LeavePolicyResponseDto> updatePolicy(
             @PathVariable UUID policyId,
             @RequestBody LeavePolicyRequestDto request) {
@@ -55,7 +55,7 @@ public class LeavePolicyController {
         );
     }
 
-    @PatchMapping("/leave-policy/{id}")
+    @PatchMapping("/leave-policy/{policyId}")
     public ResponseEntity<LeavePolicyResponseDto> patchPolicy(
             @PathVariable UUID policyId,
             @RequestBody LeavePolicyRequestDto request) {
@@ -65,7 +65,7 @@ public class LeavePolicyController {
         );
     }
 
-    @DeleteMapping("/leave-policy/{id}")
+    @DeleteMapping("/leave-policy/{policyId}")
     public ResponseEntity<LeavePolicyResponseDto> deletePolicy(
             @PathVariable UUID policyId) {
 

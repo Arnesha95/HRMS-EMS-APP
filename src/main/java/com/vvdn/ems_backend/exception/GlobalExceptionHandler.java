@@ -11,15 +11,17 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-
+import java.util.HashMap;
+import java.util.Map;
 
 
 @RestControllerAdvice
@@ -32,7 +34,8 @@ public class GlobalExceptionHandler {
             BadCredentialsException.class,
             CredentialsExpiredException.class,
             DisabledException.class,
-            ResponseStatusException.class
+            ResponseStatusException.class,
+
     })
     public ResponseEntity<ApiError> handleAuthException(Exception e, HttpServletRequest request){
         logger.info("Exception : {}", e.getMessage());
@@ -45,6 +48,19 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiError);
+    }
+
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleValidationErrors(MethodArgumentNotValidException ex) {
+
+        Map<String, String> errors = new HashMap<>();
+
+        ex.getBindingResult().getFieldErrors()
+                .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+
+        return errors;
     }
 
 
@@ -177,8 +193,18 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<?> handleRuntime(RuntimeException ex) {
-        return ResponseEntity.status(400).body(ex.getMessage());
+    public ResponseEntity<ApiError> handleRuntime(
+            RuntimeException ex,
+            HttpServletRequest request
+    ) {
+        var apiError = ApiError.of(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
     }
 
 

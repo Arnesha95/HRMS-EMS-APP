@@ -6,11 +6,12 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
-public class ResignationRequestDto {
+public class TerminationRequestDto {
 
     private UUID empId;
-    private LocalDate resignationDate;
-    private LocalDate proposedLastWorkingDate;
+    private LocalDate terminationDate;
     private String reason;
+    private String feedback;
+    private Boolean isGoodToRehire;
 
 }

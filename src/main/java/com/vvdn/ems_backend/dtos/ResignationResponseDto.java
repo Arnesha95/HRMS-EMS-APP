@@ -1,16 +1,20 @@
 package com.vvdn.ems_backend.dtos;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
-public class ResignationRequestDto {
+@Builder
+public class ResignationResponseDto {
 
+    private UUID offboardingId;
     private UUID empId;
+    private String employeeName;
     private LocalDate resignationDate;
     private LocalDate proposedLastWorkingDate;
-    private String reason;
-
+    private LocalDate finalLastWorkingDate;
+    private String status;
 }

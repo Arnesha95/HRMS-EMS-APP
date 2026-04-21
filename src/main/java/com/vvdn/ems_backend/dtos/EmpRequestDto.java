@@ -1,5 +1,6 @@
 package com.vvdn.ems_backend.dtos;
 
+import com.vvdn.ems_backend.entity.Role;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -12,6 +13,7 @@ public class EmpRequestDto {
     private String lastName;
     private String email;
     private String phone;
+    private LocalDate dateOfBirth;
     private String address;
 
     private UUID deptId;
@@ -26,6 +28,8 @@ public class EmpRequestDto {
     private LocalDate releaseDate;
 
     private UUID reportingManager;
+
+    private Role role;
 
     private UUID employmentTypeId;
 

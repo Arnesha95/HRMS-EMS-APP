@@ -14,11 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -107,7 +103,15 @@ public class LeaveServiceImpl implements LeaveService {
 
         leaveRepo.save(leave);
 
-        return new LeaveApprovalResponseDto("Leave " + request.getStatus());
+        Employee emp = leave.getEmployeeLeaves().getEmployee();
+
+        String employeeName = emp.getFirstName() + " " + emp.getLastName();
+
+        return new LeaveApprovalResponseDto(
+                employeeName,
+                "Leave " + request.getStatus(),
+                leave.getCreatedOn().toString()
+        );
     }
 
 
@@ -169,7 +173,10 @@ public class LeaveServiceImpl implements LeaveService {
 
         empLeaveRepo.saveAll(toSave);
 
-        return new LeaveApprovalResponseDto("Yearly leave credited successfully");
+        return LeaveApprovalResponseDto.builder()
+                .message("Yearly leave credited successfully")
+                .createdOn(Instant.now().toString())
+                .build();
     }
 
     @Override
@@ -222,8 +229,12 @@ public class LeaveServiceImpl implements LeaveService {
                     .getLeavePolicy()
                     .getLeaveType();
 
+            Employee emp = leave.getEmployeeLeaves().getEmployee();
+
             LeaveHistoryResponseDto dto = LeaveHistoryResponseDto.builder()
                     .leaveApplicationId(leave.getLeaveApplicationId())
+                    .employeeName(emp.getFirstName() + " " + emp.getLastName())
+                    .createdOn(leave.getCreatedOn())
                     .leaveType(type.getType())
                     .noOfDays(leave.getNoOfDays())
                     .startDate(leave.getStartDate())
@@ -275,11 +286,13 @@ public class LeaveServiceImpl implements LeaveService {
 
             LeaveHistoryResponseDto dto = LeaveHistoryResponseDto.builder()
                     .leaveApplicationId(leave.getLeaveApplicationId())
+                    .employeeName(emp.getFirstName() + " " + emp.getLastName())
+                    .createdOn(leave.getCreatedOn())
                     .leaveType(type.getType())
                     .noOfDays(leave.getNoOfDays())
                     .startDate(leave.getStartDate())
                     .endDate(leave.getEndDate())
-                    .status(leave.getStatus().name()) // ✅ convert enum → String for response
+                    .status(leave.getStatus().name())
                     .remarks(leave.getRemarks())
                     .build();
 
@@ -287,6 +300,89 @@ public class LeaveServiceImpl implements LeaveService {
         }
 
         return response;
+    }
+
+    @Override
+    public LeaveSummaryDto getLeaveSummary() {
+
+        // 🔹 Request counts
+        long total = leaveRepo.count();
+        long pending = leaveRepo.countByStatus(LeaveStatus.PENDING);
+        long approved = leaveRepo.countByStatus(LeaveStatus.APPROVED);
+        long rejected = leaveRepo.countByStatus(LeaveStatus.REJECTED);
+
+        // 🔹 Leave totals
+        Float allocated = empLeaveRepo.getTotalAllocated();
+        Float used = empLeaveRepo.getTotalUsed();
+        Float remaining = empLeaveRepo.getTotalRemaining();
+
+        // null safety
+        allocated = allocated == null ? 0 : allocated;
+        used = used == null ? 0 : used;
+        remaining = remaining == null ? 0 : remaining;
+
+        // 🔹 Breakdown by leave type
+        List<EmployeeLeave> allLeaves = empLeaveRepo.findAll();
+
+        Map<String, LeaveTypeSummaryDto.LeaveTypeSummaryDtoBuilder> map = new HashMap<>();
+
+        for (EmployeeLeave el : allLeaves) {
+
+            String type = el.getLeavePolicy().getLeaveType().getType();
+
+            map.putIfAbsent(type, LeaveTypeSummaryDto.builder()
+                    .leaveType(type)
+                    .allocated(0)
+                    .used(0)
+                    .remaining(0)
+                    .pending(0)
+                    .approved(0)
+                    .rejected(0)
+            );
+
+            var dto = map.get(type);
+
+            dto.allocated(dto.build().getAllocated() + el.getTotalLeaves());
+            dto.used(dto.build().getUsed() + el.getUsedLeaves());
+            dto.remaining(dto.build().getRemaining() + el.getRemainingLeaves());
+        }
+
+        // 🔹 Add request counts per type
+        List<LeaveApplication> apps = leaveRepo.findAll();
+
+        for (LeaveApplication app : apps) {
+
+            String type = app.getEmployeeLeaves()
+                    .getLeavePolicy()
+                    .getLeaveType()
+                    .getType();
+
+            var dto = map.get(type);
+
+            if (dto == null) continue;
+
+            switch (app.getStatus()) {
+                case PENDING -> dto.pending(dto.build().getPending() + 1);
+                case APPROVED -> dto.approved(dto.build().getApproved() + 1);
+                case REJECTED -> dto.rejected(dto.build().getRejected() + 1);
+            }
+        }
+
+        List<LeaveTypeSummaryDto> breakdown = map.values()
+                .stream()
+                .map(builder -> builder.build())
+                .toList();
+
+        return LeaveSummaryDto.builder()
+                .totalRequests(total)
+                .pendingRequests(pending)
+                .approvedRequests(approved)
+                .rejectedRequests(rejected)
+                .totalAllocated(allocated)
+                .totalUsed(used)
+                .totalRemaining(remaining)
+                .leaveTypeBreakdown(breakdown)
+                .build();
     }
 }
 

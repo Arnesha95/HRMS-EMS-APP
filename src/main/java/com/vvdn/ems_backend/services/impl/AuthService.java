@@ -65,12 +65,14 @@ public class AuthService {
 
         String accessToken = jwtUtil.generateAccessToken(
                 user.getId(),
+                user.getEmployee().getEmpId(),
                 user.getUsername(),
                 user.getRole().name()
         );
 
         String refreshToken = jwtUtil.generateRefreshToken(
                 user.getId(),
+                user.getEmployee().getEmpId(),
                 user.getUsername(),
                 user.getRole().name()
         );
@@ -93,15 +95,18 @@ public class AuthService {
         String username = jwtUtil.extractUsername(refreshToken);
         String userId = jwtUtil.extractUserId(refreshToken);
         String role = jwtUtil.extractRole(refreshToken);
+        String empId = jwtUtil.extractEmployeeId(refreshToken);
 
         String newAccessToken = jwtUtil.generateAccessToken(
                 UUID.fromString(userId),
+                UUID.fromString(empId),
                 username,
                 role
         );
 
         String newRefreshToken = jwtUtil.generateRefreshToken(
                 UUID.fromString(userId),
+                UUID.fromString(empId),
                 username,
                 role
         );

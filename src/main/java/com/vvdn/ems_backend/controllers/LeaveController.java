@@ -63,4 +63,9 @@ public class LeaveController {
                 leaveService.getAllLeaveRequests(status)
         );
     }
+
+    @GetMapping("/summary")
+    public ResponseEntity<LeaveSummaryDto> getSummary() {
+        return ResponseEntity.ok(leaveService.getLeaveSummary());
+    }
 }

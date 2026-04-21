@@ -19,4 +19,6 @@ public interface LeaveService {
 
     List<LeaveHistoryResponseDto> getAllLeaveRequests(String status);
 
+    LeaveSummaryDto getLeaveSummary();
+
 }

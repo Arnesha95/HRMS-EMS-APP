@@ -55,6 +55,12 @@ public class SecurityConfig {
                                     "/actuator/health",
                                     "/auth/logout",
                                     "/api/users").permitAll()
+                            .requestMatchers(
+                                    "/v3/api-docs/**",
+                                    "/swagger-ui/**",
+                                    "/swagger-ui.html",
+                                    "/swagger-ui/index.html"
+                            ).permitAll()
                             .anyRequest().authenticated();
                 })
                 .sessionManagement(session -> {
@@ -109,7 +115,10 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+
     }
+
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {

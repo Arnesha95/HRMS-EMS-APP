@@ -4,6 +4,7 @@ import com.vvdn.ems_backend.entity.Employee;
 import com.vvdn.ems_backend.entity.EmployeeLeave;
 import com.vvdn.ems_backend.entity.LeavePolicy;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,6 +21,16 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, UU
 
     Optional<EmployeeLeave> findTopByEmployee_EmpIdAndLeavePolicy_LeaveType_TypeIdOrderByCreatedOnDesc(
             UUID empId, UUID leaveTypeId);
+
+
+    @Query("SELECT SUM(e.totalLeaves) FROM EmployeeLeave e")
+    Float getTotalAllocated();
+
+    @Query("SELECT SUM(e.usedLeaves) FROM EmployeeLeave e")
+    Float getTotalUsed();
+
+    @Query("SELECT SUM(e.remainingLeaves) FROM EmployeeLeave e")
+    Float getTotalRemaining();
 
 
 }

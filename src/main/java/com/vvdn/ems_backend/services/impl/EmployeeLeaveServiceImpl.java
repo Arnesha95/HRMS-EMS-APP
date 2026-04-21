@@ -48,7 +48,7 @@ public class EmployeeLeaveServiceImpl implements EmployeeLeaveService {
                     .existsByEmployeeAndLeavePolicy(employee, policy);
 
             if (exists) {
-                continue; // skip duplicates
+                continue;
             }
 
             float yearlyLeaves = policy.getNoOfDays();
@@ -89,10 +89,11 @@ public class EmployeeLeaveServiceImpl implements EmployeeLeaveService {
     }
 
 
+
     private float calculateProratedLeaves(float yearlyLeaves, LocalDate joiningDate, short year) {
 
         if (joiningDate.getYear() < year) {
-            return yearlyLeaves; // full leaves
+            return yearlyLeaves;
         }
 
         int joiningMonth = joiningDate.getMonthValue();

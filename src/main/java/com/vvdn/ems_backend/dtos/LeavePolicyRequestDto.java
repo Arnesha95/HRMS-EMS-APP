@@ -1,7 +1,5 @@
 package com.vvdn.ems_backend.dtos;
 
-
-import com.vvdn.ems_backend.entity.LeaveType;
 import lombok.Data;
 
 import java.time.LocalDate;

@@ -23,5 +23,11 @@ public interface AttendanceService {
 
     MonthlyAttendanceDto getMonthlyAttendance(UUID empId, int year, int month);
 
+    List<DailyAttendanceDto> getAttendanceHistory(
+            UUID empId,
+            LocalDate startDate,
+            LocalDate endDate
+    );
+
 
 }

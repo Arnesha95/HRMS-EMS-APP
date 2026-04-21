@@ -75,12 +75,14 @@ public class AuthController {
 
             String accessToken = jwtUtil.generateAccessToken(
                     user.getId(),
+                    user.getEmployee().getEmpId(),
                     user.getUsername(),
                     user.getRole().name()
             );
 
             String refreshToken = jwtUtil.generateRefreshToken(
                     user.getId(),
+                    user.getEmployee().getEmpId(),
                     user.getUsername(),
                     user.getRole().name()
             );
