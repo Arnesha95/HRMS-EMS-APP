@@ -57,8 +57,8 @@ public class AttendancePolicyServiceImpl implements AttendancePolicyService {
         if (request.getHalfDayHour() != null)
             attendancePolicy.setHalfDayHour(request.getHalfDayHour());
 
-        if (request.getCreatedBy() != null)
-            attendancePolicy.setCreatedBy(request.getCreatedBy());
+//        if (request.getCreatedBy() != null)
+//            attendancePolicy.setCreatedBy(request.getCreatedBy());
 
         if (request.getUpdatedBy() != null)
             attendancePolicy.setUpdatedBy(request.getUpdatedBy());

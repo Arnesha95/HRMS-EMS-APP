@@ -2,6 +2,7 @@ package com.vvdn.ems_backend.services.impl;
 
 import com.vvdn.ems_backend.dtos.EmpRequestDto;
 import com.vvdn.ems_backend.dtos.EmpResponseDto;
+import com.vvdn.ems_backend.dtos.EmployeeEventDto;
 import com.vvdn.ems_backend.dtos.EmployeeSummaryDto;
 import com.vvdn.ems_backend.entity.*;
 import com.vvdn.ems_backend.repository.*;
@@ -16,7 +17,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -280,5 +284,48 @@ public class EmpServiceImpl implements EmpService {
                 .todayOnboardings(todayOnboardings)
                 .employeeGrowthPercentage(growthPercentage)
                 .build();
+    }
+
+
+    @Override
+    public List<EmployeeEventDto> getTodaysBirthdays() {
+
+        LocalDate today = LocalDate.now();
+
+        return repository.findByIsActiveTrue().stream()
+                .filter(e -> e.getDateOfBirth() != null &&
+                        e.getDateOfBirth().getMonthValue() == today.getMonthValue() &&
+                        e.getDateOfBirth().getDayOfMonth() == today.getDayOfMonth())
+                .map(e -> EmployeeEventDto.builder()
+                        .empId(e.getEmpId())
+                        .name(getFullName(e))
+                        .date(e.getDateOfBirth())
+                        .build())
+                .toList();
+    }
+
+
+    @Override
+    public List<EmployeeEventDto> getTodaysAnniversaries() {
+
+        LocalDate today = LocalDate.now();
+
+        return repository.findByIsActiveTrue().stream()
+                .filter(e -> e.getJoinDate() != null &&
+                        e.getJoinDate().getMonthValue() == today.getMonthValue() &&
+                        e.getJoinDate().getDayOfMonth() == today.getDayOfMonth())
+                .map(e -> EmployeeEventDto.builder()
+                        .empId(e.getEmpId())
+                        .name(getFullName(e))
+                        .date(e.getJoinDate())
+                        .build())
+                .toList();
+    }
+
+
+    private String getFullName(Employee e) {
+        return Stream.of(e.getFirstName(), e.getLastName())
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining(" "));
     }
 }

@@ -11,14 +11,14 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/employee-leaves")
 @RequiredArgsConstructor
 public class EmployeeLeaveController {
 
     private final EmployeeLeaveService employeeLeaveService;
 
 
-    @PostMapping("/employee-leaves/allocate")
+    @PostMapping("/allocate")
     public List<EmployeeLeaveResponseDto> allocateLeaves(
             @RequestBody EmployeeLeaveRequestDto request) {
 
@@ -26,7 +26,7 @@ public class EmployeeLeaveController {
     }
 
 
-    @GetMapping("/employee-leaves/{empId}")
+    @GetMapping("/{empId}")
     public List<EmployeeLeaveResponseDto> getEmployeeLeaves(
             @PathVariable UUID empId) {
 

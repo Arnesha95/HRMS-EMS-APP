@@ -1,7 +1,5 @@
 package com.vvdn.ems_backend.repository;
 
-import com.vvdn.ems_backend.dtos.TerminationRequestDto;
-import com.vvdn.ems_backend.dtos.TerminationResponseDto;
 import com.vvdn.ems_backend.entity.EmployeeOffboarding;
 import com.vvdn.ems_backend.entity.OffboardingStatus;
 import com.vvdn.ems_backend.entity.OffboardingType;

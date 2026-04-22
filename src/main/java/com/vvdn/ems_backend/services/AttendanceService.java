@@ -3,6 +3,7 @@ package com.vvdn.ems_backend.services;
 
 import com.vvdn.ems_backend.dtos.AttendanceResponseDto;
 import com.vvdn.ems_backend.dtos.DailyAttendanceDto;
+import com.vvdn.ems_backend.dtos.EmployeeAttendanceSummaryDto;
 import com.vvdn.ems_backend.dtos.MonthlyAttendanceDto;
 
 import java.time.LocalDate;
@@ -28,6 +29,8 @@ public interface AttendanceService {
             LocalDate startDate,
             LocalDate endDate
     );
+
+    List<EmployeeAttendanceSummaryDto> getAllEmployeesAttendance(LocalDate date);
 
 
 }

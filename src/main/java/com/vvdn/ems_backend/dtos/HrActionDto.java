@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 
 @Data
-public class HrResignationActionDto {
+public class HrActionDto {
 
     private OffboardingStatus status;
     private LocalDate finalLastWorkingDate;

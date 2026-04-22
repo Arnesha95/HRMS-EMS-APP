@@ -48,22 +48,12 @@ public class JwtUtil {
 
     //token type
     public String extractTokenType(String token) {
-//        return Jwts.parserBuilder()
-//                .setSigningKey(SECRET.getBytes())
-//                .build()
-//                .parseClaimsJws(token)
-//                .getBody()
-//                .get("type", String.class);
+
         return extractAllClaims(token).get("type", String.class);
    }
 
     public String extractUsername(String token) {
-//        return Jwts.parserBuilder()
-//                .setSigningKey(SECRET.getBytes())
-//                .build()
-//                .parseClaimsJws(token)
-//                .getBody()
-//                .getSubject();
+
         return extractAllClaims(token).getSubject();
     }
 
@@ -80,8 +70,6 @@ public class JwtUtil {
     }
 
 
-
-    //validate token
     public boolean validateToken(String token) {
         try {
             extractAllClaims(token);

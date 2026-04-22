@@ -2,16 +2,11 @@ package com.vvdn.ems_backend.services.impl;
 
 import com.vvdn.ems_backend.dtos.AttendanceResponseDto;
 import com.vvdn.ems_backend.dtos.DailyAttendanceDto;
+import com.vvdn.ems_backend.dtos.EmployeeAttendanceSummaryDto;
 import com.vvdn.ems_backend.dtos.MonthlyAttendanceDto;
-import com.vvdn.ems_backend.entity.AttendancePolicy;
-import com.vvdn.ems_backend.entity.AttendanceStatus;
-import com.vvdn.ems_backend.entity.EmployeeAttendance;
-import com.vvdn.ems_backend.entity.HolidayCalendar;
+import com.vvdn.ems_backend.entity.*;
 import com.vvdn.ems_backend.exception.AttendanceNotFoundException;
-import com.vvdn.ems_backend.repository.AttendanceRepository;
-import com.vvdn.ems_backend.repository.AttendancePolicyRepository;
-import com.vvdn.ems_backend.repository.HolidayRepository;
-import com.vvdn.ems_backend.repository.LeaveRepository;
+import com.vvdn.ems_backend.repository.*;
 import com.vvdn.ems_backend.services.AttendanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,6 +27,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     private final LeaveRepository leaveRepository;
     private final AttendanceRepository attendanceRepository;
     private final AttendancePolicyRepository attendancePolicyRepository;
+    private final EmpRepository empRepository;
 
     @Override
     public AttendanceResponseDto markAttendance(UUID empId) {
@@ -125,13 +121,13 @@ public class AttendanceServiceImpl implements AttendanceService {
         }
 
 
-        boolean onLeave = leaveRepository
-                .existsByEmployeeLeaves_Employee_EmpIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                        empId, date, date);
-
-        if (onLeave) {
-            return buildResponse(empId, date, AttendanceStatus.LEAVE, "On Leave");
-        }
+//        boolean onLeave = leaveRepository
+//                .existsByEmployeeLeaves_Employee_EmpIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+//                        empId, date, date);
+//
+//        if (onLeave) {
+//            return buildResponse(empId, date, AttendanceStatus.LEAVE, "On Leave");
+//        }
 
 
         Optional<EmployeeAttendance> attendance =
@@ -234,5 +230,31 @@ public class AttendanceServiceImpl implements AttendanceService {
         }
 
         return history;
+    }
+
+    @Override
+    public List<EmployeeAttendanceSummaryDto> getAllEmployeesAttendance(LocalDate date) {
+
+        List<EmployeeAttendanceSummaryDto> response = new ArrayList<>();
+
+        List<Employee> employees = empRepository.findAll();
+
+        for (Employee emp : employees) {
+
+            DailyAttendanceDto daily = getDailyAttendance(emp.getEmpId(), date);
+
+            response.add(EmployeeAttendanceSummaryDto.builder()
+                    .empId(emp.getEmpId())
+                    .fullName(emp.getFirstName() + " " + emp.getLastName())
+                    .date(date)
+                    .inTime(daily.getInTime())
+                    .outTime(daily.getOutTime())
+                    .workingHour(daily.getWorkingHour())
+                    .status(daily.getStatus())
+                    .remarks(daily.getRemarks())
+                    .build());
+        }
+
+        return response;
     }
 }

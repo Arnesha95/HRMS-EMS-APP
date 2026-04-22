@@ -1,12 +1,10 @@
 package com.vvdn.ems_backend.controllers;
 
-import com.vvdn.ems_backend.dtos.AttendanceRequestDto;
-import com.vvdn.ems_backend.dtos.AttendanceResponseDto;
-import com.vvdn.ems_backend.dtos.DailyAttendanceDto;
-import com.vvdn.ems_backend.dtos.MonthlyAttendanceDto;
+import com.vvdn.ems_backend.dtos.*;
 import com.vvdn.ems_backend.services.AttendanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -19,6 +17,7 @@ import java.util.UUID;
 public class AttendanceController {
 
     private final AttendanceService attendanceService;
+
 
 
     @PostMapping()
@@ -89,5 +88,14 @@ public class AttendanceController {
 
         return attendanceService.getAttendanceHistory(empId, startDate, endDate);
 
+    }
+
+    @GetMapping("/all")
+    public List<EmployeeAttendanceSummaryDto> getAllEmployeesAttendance(
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date) {
+
+        return attendanceService.getAllEmployeesAttendance(date);
     }
 }

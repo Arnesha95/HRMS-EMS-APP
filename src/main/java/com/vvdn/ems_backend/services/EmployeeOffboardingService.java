@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface EmployeeOffboardingService {
 
-    ResignationResponseDto takeAction(UUID offboardingId, HrResignationActionDto dto, UUID hrId);
+    ResignationResponseDto takeAction(UUID offboardingId, HrActionDto dto, UUID hrId);
 
     List<ResignationResponseDto> getResignations(OffboardingStatus status);
 
@@ -18,5 +18,7 @@ public interface EmployeeOffboardingService {
     TerminationResponseDto initiateTermination(TerminationRequestDto dto, UUID hrId);
 
     List<TerminationResponseDto> getTerminations(OffboardingStatus status);
+
+    TerminationResponseDto takeTerminationAction(UUID offboardingId, HrActionDto dto, UUID hrId);
 
 }

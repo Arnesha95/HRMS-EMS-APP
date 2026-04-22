@@ -94,7 +94,7 @@ public class EmployeeOffboardingServiceImpl implements EmployeeOffboardingServic
 
     @Transactional
     @Override
-    public ResignationResponseDto takeAction(UUID offboardingId, HrResignationActionDto dto, UUID hrId) {
+    public ResignationResponseDto takeAction(UUID offboardingId, HrActionDto dto, UUID hrId) {
 
         EmployeeOffboarding entity = offboardingRepo.findById(offboardingId)
                 .orElseThrow(() -> new RuntimeException("Request not found"));
@@ -155,20 +155,46 @@ public class EmployeeOffboardingServiceImpl implements EmployeeOffboardingServic
         EmployeeOffboarding entity = EmployeeOffboarding.builder()
                 .employee(emp)
                 .offboardingType(OffboardingType.TERMINATION)
-                .resignationDate(dto.getTerminationDate())
-                .finalLastWorkingDate(dto.getTerminationDate())
+                .resignationDate(dto.getTerminationDate()) // rename later ideally
+                .proposedLastWorkingDate(dto.getTerminationDate())
                 .reason(dto.getReason())
                 .feedback(dto.getFeedback())
                 .isGoodToRehire(dto.getIsGoodToRehire())
-                .offboardingStatus(OffboardingStatus.APPROVED)
-                .actionBy(hrId)
-                .actionOn(Instant.now())
+                .offboardingStatus(OffboardingStatus.PENDING) // ✅ FIX
                 .isClearanceDone(false)
                 .build();
 
         offboardingRepo.save(entity);
 
         return mapToTerminationDto(entity, "Termination processed successfully");
+    }
+
+
+    @Transactional
+    @Override
+    public TerminationResponseDto takeTerminationAction(UUID offboardingId, HrActionDto dto, UUID hrId) {
+
+        EmployeeOffboarding entity = offboardingRepo.findById(offboardingId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+
+        if (entity.getOffboardingStatus() != OffboardingStatus.PENDING) {
+            throw new RuntimeException("Already processed");
+        }
+
+        entity.setOffboardingStatus(dto.getStatus());
+        entity.setFeedback(dto.getFeedback());
+        entity.setIsGoodToRehire(dto.getIsGoodToRehire());
+        entity.setActionBy(hrId);
+        entity.setActionOn(Instant.now());
+
+        if (dto.getStatus() == OffboardingStatus.APPROVED) {
+            entity.setFinalLastWorkingDate(dto.getFinalLastWorkingDate());
+            entity.setIsClearanceDone(false);
+        }
+
+        offboardingRepo.save(entity);
+
+        return mapToTerminationDto(entity, "Termination action completed");
     }
 
 

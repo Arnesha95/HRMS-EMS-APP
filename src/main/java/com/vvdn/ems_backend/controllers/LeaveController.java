@@ -52,7 +52,13 @@ public class LeaveController {
     public ResponseEntity<List<LeaveHistoryResponseDto>> getLeaveHistory(
             @RequestParam UUID empId) {
 
-        return ResponseEntity.ok(leaveService.getLeaveHistory(empId));
+        List<LeaveHistoryResponseDto> response = leaveService.getLeaveHistory(empId);
+
+        if (response.isEmpty()) {
+            return ResponseEntity.noContent().build(); // 204
+        }
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/requests")
@@ -67,5 +73,14 @@ public class LeaveController {
     @GetMapping("/summary")
     public ResponseEntity<LeaveSummaryDto> getSummary() {
         return ResponseEntity.ok(leaveService.getLeaveSummary());
+    }
+
+    @GetMapping("/{leaveApplicationId}")
+    public ResponseEntity<LeaveDetailsResponseDto> getLeaveById(
+            @PathVariable UUID leaveApplicationId) {
+
+        return ResponseEntity.ok(
+                leaveService.getLeaveById(leaveApplicationId)
+        );
     }
 }

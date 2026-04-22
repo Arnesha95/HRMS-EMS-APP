@@ -13,11 +13,12 @@ public interface LeaveRepository extends JpaRepository<LeaveApplication, UUID> {
     List<LeaveApplication> findByEmployeeLeaves_Employee_EmpIdOrderByCreatedOnDesc(UUID empId);
 
 
-    boolean existsByEmployeeLeaves_Employee_EmpIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-            UUID empId,
-            LocalDate startDate,
-            LocalDate endDate
-    );
+//    boolean existsByEmployeeLeaves_Employee_EmpIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+//            UUID empId,
+//           // List<LeaveStatus> statuses,
+//            LocalDate startDate,
+//            LocalDate endDate
+//    );
 
 
     List<LeaveApplication> findAllByOrderByCreatedOnDesc();

@@ -45,7 +45,7 @@ public class EmployeeOffboardingController {
     @PutMapping("/resignation/{offBoardingId}/action")
     public ResponseEntity<ResignationResponseDto> takeAction(
             @PathVariable UUID offBoardingId,
-            @Valid @RequestBody HrResignationActionDto dto
+            @Valid @RequestBody HrActionDto dto
     ) {
 
         UUID hrId = UUID.randomUUID();
@@ -66,6 +66,7 @@ public class EmployeeOffboardingController {
     }
 
 
+
     @GetMapping("/termination")
     public ResponseEntity<List<TerminationResponseDto>> getTerminations(
             @RequestParam(required = false) OffboardingStatus status
@@ -78,6 +79,15 @@ public class EmployeeOffboardingController {
         }
 
         return ResponseEntity.ok(list);
+    }
+
+    @PutMapping("/termination/{offBoardingId}/action")
+    public ResponseEntity<TerminationResponseDto> takeTerminationAction(
+            @PathVariable UUID offBoardingId,
+            @Valid @RequestBody HrActionDto dto
+    ) {
+        UUID hrId = UUID.randomUUID();
+        return ResponseEntity.ok(service.takeTerminationAction(offBoardingId, dto, hrId));
     }
 
 }

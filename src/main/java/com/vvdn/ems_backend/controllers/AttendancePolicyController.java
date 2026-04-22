@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/attendance-policy")
 @RequiredArgsConstructor
 public class AttendancePolicyController {
 
     private final AttendancePolicyService attendancePolicyService;
 
-    @PostMapping("/attendance-policy")
+    @PostMapping
     public ResponseEntity<AttendancePolicyResponseDto> createPolicy(
             @RequestBody AttendancePolicyRequestDto request) {
 
@@ -29,7 +29,7 @@ public class AttendancePolicyController {
         );
     }
 
-    @GetMapping("/attendance-policy/{id}")
+    @GetMapping("/{attPolicyId}")
     public ResponseEntity<AttendancePolicy> getPolicyById(
             @PathVariable UUID attPolicyId) {
 
@@ -38,14 +38,14 @@ public class AttendancePolicyController {
         );
     }
 
-    @GetMapping("/attendance-policy")
+    @GetMapping
     public ResponseEntity<List<AttendancePolicy>> getAllPolicies() {
         return ResponseEntity.ok(
                 attendancePolicyService.getAllPolicies()
         );
     }
 
-    @PutMapping("/attendance-policy/{id}")
+    @PutMapping("/{attPolicyId}")
     public ResponseEntity<AttendancePolicyResponseDto> updatePolicy(
             @PathVariable UUID attPolicyId,
             @RequestBody AttendancePolicyRequestDto request) {
@@ -55,7 +55,7 @@ public class AttendancePolicyController {
         );
     }
 
-    @DeleteMapping("/attendance-policy/{id}/deactivate")
+    @DeleteMapping("/{attPolicyId}/deactivate")
     public ResponseEntity<AttendancePolicyResponseDto> deactivatedAttendancePolicy(
             @PathVariable UUID attPolicyId) {
 

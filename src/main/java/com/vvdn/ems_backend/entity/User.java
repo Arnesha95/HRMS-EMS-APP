@@ -56,6 +56,7 @@ public class User implements UserDetails {
     @Column(name = "updated_by")
     private UUID updatedBy;
 
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
 

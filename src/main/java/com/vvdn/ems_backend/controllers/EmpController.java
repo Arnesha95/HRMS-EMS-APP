@@ -2,10 +2,12 @@ package com.vvdn.ems_backend.controllers;
 
 import com.vvdn.ems_backend.dtos.EmpRequestDto;
 import com.vvdn.ems_backend.dtos.EmpResponseDto;
+import com.vvdn.ems_backend.dtos.EmployeeEventDto;
 import com.vvdn.ems_backend.dtos.EmployeeSummaryDto;
 import com.vvdn.ems_backend.entity.Employee;
 import com.vvdn.ems_backend.services.EmpService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -52,6 +54,17 @@ public class EmpController {
     @GetMapping("/summary")
     public EmployeeSummaryDto getSummary() {
         return service.getEmployeeSummary();
+    }
+
+
+    @GetMapping("/birthdays/today")
+    public ResponseEntity<List<EmployeeEventDto>> getTodaysBirthdays() {
+        return ResponseEntity.ok(service.getTodaysBirthdays());
+    }
+
+    @GetMapping("/anniversaries/today")
+    public ResponseEntity<List<EmployeeEventDto>> getTodaysAnniversaries() {
+        return ResponseEntity.ok(service.getTodaysAnniversaries());
     }
 
 }

@@ -2,6 +2,7 @@ package com.vvdn.ems_backend.services;
 
 import com.vvdn.ems_backend.dtos.EmpRequestDto;
 import com.vvdn.ems_backend.dtos.EmpResponseDto;
+import com.vvdn.ems_backend.dtos.EmployeeEventDto;
 import com.vvdn.ems_backend.dtos.EmployeeSummaryDto;
 import com.vvdn.ems_backend.entity.Employee;
 
@@ -21,4 +22,7 @@ public interface EmpService {
     List<Employee> getAllEmployees();
 
     EmployeeSummaryDto getEmployeeSummary();
+
+    List<EmployeeEventDto> getTodaysBirthdays();
+    List<EmployeeEventDto> getTodaysAnniversaries();
 }

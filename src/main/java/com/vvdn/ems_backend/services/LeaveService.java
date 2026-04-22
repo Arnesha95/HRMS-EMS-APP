@@ -21,4 +21,6 @@ public interface LeaveService {
 
     LeaveSummaryDto getLeaveSummary();
 
+    LeaveDetailsResponseDto getLeaveById(UUID leaveApplicationId);
+
 }

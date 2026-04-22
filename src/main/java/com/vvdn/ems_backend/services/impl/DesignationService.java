@@ -30,7 +30,9 @@ public class DesignationService {
 
         designationRepository.save(designation);
 
-        return new DesignationResponseDto("Designation added successfully");
+        return DesignationResponseDto.builder()
+                .message("Designation added successfully")
+                .build();
 
     }
 
@@ -84,7 +86,9 @@ public class DesignationService {
         
         designationRepository.save(designation);
 
-        return new DesignationResponseDto("Designation updated successfully");
+        return DesignationResponseDto.builder()
+                .message("Designation updated successfully")
+                .build();
 
     }
 
@@ -100,7 +104,9 @@ public class DesignationService {
         designation.setIsActive(false);
         designationRepository.save(designation);
 
-        return new DesignationResponseDto("Designation deactivated successfully");
+        return DesignationResponseDto.builder()
+                .message("Designation deactivated successfully")
+                .build();
     }
 
 
@@ -111,7 +117,9 @@ public class DesignationService {
 
         designationRepository.delete(designation);
 
-        return new DesignationResponseDto("Designation deleted successfully");
+        return DesignationResponseDto.builder()
+                .message("Designation deleted successfully")
+                .build();
     }
 
 }

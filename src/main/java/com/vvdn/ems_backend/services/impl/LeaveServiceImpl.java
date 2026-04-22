@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
@@ -24,7 +25,6 @@ public class LeaveServiceImpl implements LeaveService {
     private final EmployeeLeaveRepository empLeaveRepo;
     private final LeavePolicyRepository leavePolicyRepository;
     private final EmpRepository employeeRepository;
-    private final LeaveRepository leaveRepository;
 
 
     @Override
@@ -34,6 +34,7 @@ public class LeaveServiceImpl implements LeaveService {
                 .orElseThrow(() -> new RuntimeException("Employee leave record not found"));
 
 
+
         if (empLeaves.getRemainingLeaves() < request.getNoOfDays()) {
             throw new BadRequestException("Insufficient leave balance");
         }
@@ -41,6 +42,35 @@ public class LeaveServiceImpl implements LeaveService {
         if (request.getStartDate().isAfter(request.getEndDate())) {
             throw new BadRequestException("Invalid date range");
         }
+
+
+        LeavePolicy policy = empLeaves.getLeavePolicy();
+        LeaveType leaveType = policy.getLeaveType();
+
+        long days = ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate()) + 1;
+
+        if (leaveType.getMaxConsecutiveDays() != null &&
+                days > leaveType.getMaxConsecutiveDays()) {
+
+            throw new BadRequestException(
+                    "Cannot apply more than " + leaveType.getMaxConsecutiveDays() + " consecutive days for " + leaveType.getType()
+            );
+        }
+
+        
+        if (!leaveType.getPostApplicationAllowed() &&
+                request.getStartDate().isBefore(LocalDate.now())) {
+
+            throw new BadRequestException("Past leave application not allowed for " + leaveType.getType());
+        }
+
+
+        empLeaves.setUsedLeaves(empLeaves.getUsedLeaves() + request.getNoOfDays());
+        empLeaves.setRemainingLeaves(empLeaves.getRemainingLeaves() - request.getNoOfDays());
+        empLeaves.setUpdatedBy(userId);
+        empLeaves.setUpdatedOn(Instant.now());
+
+        empLeaveRepo.save(empLeaves);
 
 
         LeaveApplication leave = LeaveApplication.builder()
@@ -57,6 +87,19 @@ public class LeaveServiceImpl implements LeaveService {
 
         leaveRepo.save(leave);
 
+//        boolean exists = leaveRepo
+//                .existsByEmployeeLeaves_Employee_EmpIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+//                        empLeaves.getEmployee().getEmpId(),
+//
+//                        request.getEndDate(),
+//                        request.getStartDate()
+//                );
+//
+//        if (exists) {
+//            throw new BadRequestException("Leave already exists for selected dates");
+//        }
+
+
         return new ApplyLeaveResponseDto("Leave applied successfully");
     }
 
@@ -68,8 +111,15 @@ public class LeaveServiceImpl implements LeaveService {
                 .orElseThrow(() -> new RuntimeException("Leave not found"));
 
 
+        Employee emp = leave.getEmployeeLeaves().getEmployee();
+
+
         if (leave.getStatus() != LeaveStatus.PENDING) {
             throw new BadRequestException("Leave already processed");
+        }
+
+        if (emp.getEmpId().equals(hrId)) {
+            throw new BadRequestException("You cannot approve/reject your own leave");
         }
 
         EmployeeLeave empLeaves = leave.getEmployeeLeaves();
@@ -82,19 +132,28 @@ public class LeaveServiceImpl implements LeaveService {
             throw new BadRequestException("Invalid status value");
         }
 
-        if (newStatus == LeaveStatus.APPROVED) {
+        if (newStatus == LeaveStatus.REJECTED) {
 
-            if (empLeaves.getRemainingLeaves() < leave.getNoOfDays()) {
-                throw new BadRequestException("Not enough leave balance");
+            float updatedUsed = empLeaves.getUsedLeaves() - leave.getNoOfDays();
+            float updatedRemaining = empLeaves.getRemainingLeaves() + leave.getNoOfDays();
+
+            // Safety guards
+            if (updatedUsed < 0) {
+                updatedUsed = 0;
             }
 
-            empLeaves.setUsedLeaves(empLeaves.getUsedLeaves() + leave.getNoOfDays());
-            empLeaves.setRemainingLeaves(empLeaves.getRemainingLeaves() - leave.getNoOfDays());
+            if (updatedRemaining > empLeaves.getTotalLeaves()) {
+                updatedRemaining = empLeaves.getTotalLeaves();
+            }
+
+            empLeaves.setUsedLeaves(updatedUsed);
+            empLeaves.setRemainingLeaves(updatedRemaining);
             empLeaves.setUpdatedBy(hrId);
             empLeaves.setUpdatedOn(Instant.now());
 
             empLeaveRepo.save(empLeaves);
         }
+
 
         leave.setStatus(newStatus);
         leave.setAppRejBy(hrId);
@@ -103,7 +162,6 @@ public class LeaveServiceImpl implements LeaveService {
 
         leaveRepo.save(leave);
 
-        Employee emp = leave.getEmployeeLeaves().getEmployee();
 
         String employeeName = emp.getFirstName() + " " + emp.getLastName();
 
@@ -179,6 +237,7 @@ public class LeaveServiceImpl implements LeaveService {
                 .build();
     }
 
+
     @Override
     public List<EmployeeLeaveResponseDto> getEmployeeLeaveBalance(UUID empId) {
 
@@ -211,17 +270,19 @@ public class LeaveServiceImpl implements LeaveService {
 
     }
 
+
     @Override
     public List<LeaveHistoryResponseDto> getLeaveHistory(UUID empId) {
 
         List<LeaveApplication> applications =
                 leaveRepo.findByEmployeeLeaves_Employee_EmpIdOrderByCreatedOnDesc(empId);
 
-        if (applications.isEmpty()) {
-            throw new BadRequestException("No leave history found");
-        }
+//        if (applications.isEmpty()) {
+//            throw new BadRequestException("No leave history found");
+//        }
 
         List<LeaveHistoryResponseDto> response = new ArrayList<>();
+
 
         for (LeaveApplication leave : applications) {
 
@@ -302,26 +363,27 @@ public class LeaveServiceImpl implements LeaveService {
         return response;
     }
 
+
     @Override
     public LeaveSummaryDto getLeaveSummary() {
 
-        // 🔹 Request counts
+
         long total = leaveRepo.count();
         long pending = leaveRepo.countByStatus(LeaveStatus.PENDING);
         long approved = leaveRepo.countByStatus(LeaveStatus.APPROVED);
         long rejected = leaveRepo.countByStatus(LeaveStatus.REJECTED);
 
-        // 🔹 Leave totals
+
         Float allocated = empLeaveRepo.getTotalAllocated();
         Float used = empLeaveRepo.getTotalUsed();
         Float remaining = empLeaveRepo.getTotalRemaining();
 
-        // null safety
+
         allocated = allocated == null ? 0 : allocated;
         used = used == null ? 0 : used;
         remaining = remaining == null ? 0 : remaining;
 
-        // 🔹 Breakdown by leave type
+
         List<EmployeeLeave> allLeaves = empLeaveRepo.findAll();
 
         Map<String, LeaveTypeSummaryDto.LeaveTypeSummaryDtoBuilder> map = new HashMap<>();
@@ -382,6 +444,75 @@ public class LeaveServiceImpl implements LeaveService {
                 .totalUsed(used)
                 .totalRemaining(remaining)
                 .leaveTypeBreakdown(breakdown)
+                .build();
+    }
+
+    @Override
+    public LeaveDetailsResponseDto getLeaveById(UUID leaveApplicationId) {
+
+        LeaveApplication leave = leaveRepo.findById(leaveApplicationId)
+                .orElseThrow(() -> new BadRequestException("Leave not found"));
+
+        Employee emp = leave.getEmployeeLeaves().getEmployee();
+
+        String employeeName = emp.getFirstName() + " " + emp.getLastName();
+
+        String leaveType = leave.getEmployeeLeaves()
+                .getLeavePolicy()
+                .getLeaveType()
+                .getType();
+
+
+        LocalDate approvedOn = null;
+        LocalDate rejectedOn = null;
+        UUID approvedBy = null;
+        UUID rejectedBy = null;
+
+
+
+        if (leave.getStatus() == LeaveStatus.APPROVED) {
+            approvedOn = leave.getAppRejOn();
+            approvedBy = leave.getAppRejBy();
+        } else if (leave.getStatus() == LeaveStatus.REJECTED) {
+            rejectedOn = leave.getAppRejOn();
+            rejectedBy = leave.getAppRejBy();
+        }
+
+        String approverName = null;
+        String denierName = null;
+
+        UUID actionBy = leave.getAppRejBy();
+
+        if (actionBy != null) {
+            Employee actionEmp = employeeRepository.findById(actionBy).orElse(null);
+
+            if (actionEmp != null) {
+                String fullName = actionEmp.getFirstName() + " " + actionEmp.getLastName();
+
+                if (leave.getStatus() == LeaveStatus.APPROVED) {
+                    approverName = fullName;
+                } else if (leave.getStatus() == LeaveStatus.REJECTED) {
+                    denierName = fullName;
+                }
+            }
+        }
+
+        return LeaveDetailsResponseDto.builder()
+                .leaveApplicationId(leave.getLeaveApplicationId())
+                .employeeName(employeeName)
+                .leaveType(leaveType)
+                .noOfDays(leave.getNoOfDays())
+                .startDate(leave.getStartDate())
+                .endDate(leave.getEndDate())
+                .status(leave.getStatus().name())
+                .createdOn(leave.getCreatedOn())
+                .approvedOn(approvedOn)
+                .rejectedOn(rejectedOn)
+                .approvedBy(approvedBy)
+                .approver(approverName)
+                .denier(denierName)
+                .rejectedBy(rejectedBy)
+                .remarks(leave.getRemarks())
                 .build();
     }
 }

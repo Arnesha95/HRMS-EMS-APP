@@ -1,8 +1,10 @@
 package com.vvdn.ems_backend.services.impl;
 
 import com.vvdn.ems_backend.dtos.DeptDesigMappingRequestDto;
-import com.vvdn.ems_backend.dtos.DeptDesigMappingResponseDto;
+import com.vvdn.ems_backend.dtos.DeptWiseDesigResponseDto;
+import com.vvdn.ems_backend.dtos.DesignationDto;
 import com.vvdn.ems_backend.entity.DeptDesigMapping;
+import com.vvdn.ems_backend.repository.DesignationRepository;
 import com.vvdn.ems_backend.repository.MappingRepository;
 import com.vvdn.ems_backend.services.DeptDesigMappingService;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +21,11 @@ import java.util.stream.Collectors;
 public class DeptDesigMappingServiceImpl implements DeptDesigMappingService {
 
     private final MappingRepository repository;
+    private final DesignationRepository designationRepository;
 
     @Override
     @Transactional
-    public DeptDesigMappingResponseDto addMappings(DeptDesigMappingRequestDto requestDto) {
+    public DeptWiseDesigResponseDto addMappings(DeptDesigMappingRequestDto requestDto) {
 
         UUID deptId = requestDto.getDeptId();
         UUID userId = requestDto.getUserId();
@@ -40,7 +43,7 @@ public class DeptDesigMappingServiceImpl implements DeptDesigMappingService {
 
         repository.saveAll(mappings);
 
-        return DeptDesigMappingResponseDto.builder()
+        return DeptWiseDesigResponseDto.builder()
                 .message("mapping is done successfully")
                 .build();
     }
@@ -54,7 +57,7 @@ public class DeptDesigMappingServiceImpl implements DeptDesigMappingService {
     }
 
     @Override
-    public DeptDesigMappingResponseDto deleteMapping(UUID deptId, UUID desigId) {
+    public DeptWiseDesigResponseDto deleteMapping(UUID deptId, UUID desigId) {
 
         List<DeptDesigMapping> mappings =
                 repository.findByDeptId(deptId)
@@ -64,9 +67,26 @@ public class DeptDesigMappingServiceImpl implements DeptDesigMappingService {
 
         repository.deleteAll(mappings);
 
-        return DeptDesigMappingResponseDto.builder()
+        return DeptWiseDesigResponseDto.builder()
                 .message("mapping deleted successfully")
                 .build();
+    }
+
+    @Override
+    public List<DesignationDto> getDesignationDetailsByDept(UUID deptId) {
+
+        List<UUID> desigIds = repository.findByDeptId(deptId)
+                .stream()
+                .map(DeptDesigMapping::getDesigId)
+                .toList();
+
+        return designationRepository.findAllById(desigIds)
+                .stream()
+                .map(d -> DesignationDto.builder()
+                        .id(d.getId())          // ✅ fixed
+                        .name(d.getTitle())     // ✅ fixed
+                        .build())
+                .toList();
     }
 
 }
