@@ -36,6 +36,7 @@ public class SecurityConfig {
 
     public SecurityConfig(JwtAuthFilter jwtAuthFilter,
                           CustomUserDetailsService userDetailsService) {
+
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
 
@@ -57,6 +58,8 @@ public class SecurityConfig {
                                     "/auth/refresh",
                                     "/actuator/health",
                                     "/auth/logout",
+                                    "/auth/forgot-password",
+                                    "/auth/reset-password",
                                     "/api/users").permitAll()
                             .requestMatchers(
                                     "/v3/api-docs/**",

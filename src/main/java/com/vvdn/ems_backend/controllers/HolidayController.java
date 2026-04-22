@@ -7,6 +7,7 @@ import com.vvdn.ems_backend.services.HolidayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class HolidayController {
 
     private final HolidayService holidayService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/holiday")
     public ResponseEntity<HolidayResponseDto> createPolicy(
             @RequestBody HolidayRequestDto request) {
@@ -29,6 +31,7 @@ public class HolidayController {
         );
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'EMPLOYEE)")
     @GetMapping("/holiday/{holidayId}")
     public ResponseEntity<HolidayCalendar> getHolidayById(
             @PathVariable UUID holidayId) {
@@ -38,6 +41,7 @@ public class HolidayController {
         );
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'EMPLOYEE')")
     @GetMapping("/holidays")
     public ResponseEntity<List<HolidayCalendar>> getAllHolidays() {
         return ResponseEntity.ok(
@@ -45,6 +49,7 @@ public class HolidayController {
         );
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @PutMapping("/holiday/{holidayId}")
     public ResponseEntity<HolidayResponseDto> updateHoliday(
             @PathVariable UUID holidayId,
@@ -55,6 +60,7 @@ public class HolidayController {
         );
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @DeleteMapping("/holiday/{holidayId}/deactivate")
     public ResponseEntity<HolidayResponseDto> deactivateHoliday(
             @PathVariable UUID holidayId) {

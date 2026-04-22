@@ -1,10 +1,6 @@
 package com.vvdn.ems_backend.dtos;
 
-import com.vvdn.ems_backend.entity.Role;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import java.util.UUID;
 
 @Data
 public class LoginResponse {
@@ -14,17 +10,20 @@ public class LoginResponse {
     private String message;
     private String role;
     private String username;
+    private boolean isFirstLogin;
 
     public LoginResponse(){
 
     }
 
-    public LoginResponse(String accessToken, String refreshToken, String message, String role, String username) {
+    public LoginResponse(String accessToken, String refreshToken, String message,
+                         String role, String username, Boolean isFirstLogin) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.message = message;
         this.role = role;
         this.username = username;
+        this.isFirstLogin = Boolean.TRUE.equals(isFirstLogin);
     }
 
     public String getAccessToken() {
@@ -65,5 +64,13 @@ public class LoginResponse {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public boolean isFirstLogin() {
+        return isFirstLogin;
+    }
+
+    public void setFirstLogin(boolean firstLogin) {
+        isFirstLogin = firstLogin;
     }
 }

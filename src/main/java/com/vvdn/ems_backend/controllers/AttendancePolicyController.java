@@ -7,6 +7,7 @@ import com.vvdn.ems_backend.services.AttendancePolicyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class AttendancePolicyController {
 
     private final AttendancePolicyService attendancePolicyService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<AttendancePolicyResponseDto> createPolicy(
             @RequestBody AttendancePolicyRequestDto request) {
@@ -29,6 +31,7 @@ public class AttendancePolicyController {
         );
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     @GetMapping("/{attPolicyId}")
     public ResponseEntity<AttendancePolicy> getPolicyById(
             @PathVariable UUID attPolicyId) {
@@ -38,6 +41,7 @@ public class AttendancePolicyController {
         );
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     @GetMapping
     public ResponseEntity<List<AttendancePolicy>> getAllPolicies() {
         return ResponseEntity.ok(
@@ -45,6 +49,7 @@ public class AttendancePolicyController {
         );
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{attPolicyId}")
     public ResponseEntity<AttendancePolicyResponseDto> updatePolicy(
             @PathVariable UUID attPolicyId,
@@ -55,6 +60,7 @@ public class AttendancePolicyController {
         );
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{attPolicyId}/deactivate")
     public ResponseEntity<AttendancePolicyResponseDto> deactivatedAttendancePolicy(
             @PathVariable UUID attPolicyId) {

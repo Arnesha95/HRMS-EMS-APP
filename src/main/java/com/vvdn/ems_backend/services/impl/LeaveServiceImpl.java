@@ -57,11 +57,24 @@ public class LeaveServiceImpl implements LeaveService {
             );
         }
 
+        if (!empLeaves.getEmployee().getEmpId().equals(userId)) {
+            throw new BadRequestException("You are not allowed to apply leave for this employee");
+        }
+
         
         if (!leaveType.getPostApplicationAllowed() &&
                 request.getStartDate().isBefore(LocalDate.now())) {
 
             throw new BadRequestException("Past leave application not allowed for " + leaveType.getType());
+        }
+
+        if (leaveRepo.existsByEmployeeLeaves_Employee_EmpIdAndStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                userId,
+                List.of(LeaveStatus.PENDING, LeaveStatus.APPROVED),
+                request.getEndDate(),
+                request.getStartDate()
+        )) {
+            throw new BadRequestException("Leave already exists for selected dates");
         }
 
 
@@ -87,18 +100,24 @@ public class LeaveServiceImpl implements LeaveService {
 
         leaveRepo.save(leave);
 
-//        boolean exists = leaveRepo
-//                .existsByEmployeeLeaves_Employee_EmpIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-//                        empLeaves.getEmployee().getEmpId(),
-//
-//                        request.getEndDate(),
-//                        request.getStartDate()
-//                );
-//
-//        if (exists) {
-//            throw new BadRequestException("Leave already exists for selected dates");
-//        }
 
+        List<LeaveStatus> activeStatuses = List.of(
+                LeaveStatus.PENDING,
+                LeaveStatus.APPROVED
+        );
+
+        boolean exists = leaveRepo
+                .existsByEmployeeLeaves_Employee_EmpIdAndStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                        empLeaves.getEmployee().getEmpId(),
+                        List.of(LeaveStatus.PENDING),
+                        request.getEndDate(),
+                        request.getStartDate()
+                );
+
+        if (exists) {
+            throw new BadRequestException(
+                    "Leave already applied for selected dates (Pending request exists)");
+        }
 
         return new ApplyLeaveResponseDto("Leave applied successfully");
     }
@@ -513,6 +532,60 @@ public class LeaveServiceImpl implements LeaveService {
                 .denier(denierName)
                 .rejectedBy(rejectedBy)
                 .remarks(leave.getRemarks())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public CancelLeaveResponseDto cancelLeave(CancelLeaveRequestDto request, UUID userId) {
+
+        LeaveApplication leave = leaveRepo.findById(request.getLeaveApplicationId())
+                .orElseThrow(() -> new BadRequestException("Leave not found"));
+
+        EmployeeLeave empLeaves = leave.getEmployeeLeaves();
+
+        // ownership check
+        if (!empLeaves.getEmployee().getEmpId().equals(userId)) {
+            throw new BadRequestException("You can only cancel your own leave");
+        }
+
+        // already processed?
+        if (leave.getStatus() == LeaveStatus.CANCELLED) {
+            throw new BadRequestException("Leave already cancelled");
+        }
+
+        if (leave.getStatus() == LeaveStatus.REJECTED) {
+            throw new BadRequestException("Rejected leave cannot be cancelled");
+        }
+
+        // if approved → restore balance
+        if (leave.getStatus() == LeaveStatus.APPROVED) {
+
+            empLeaves.setUsedLeaves(empLeaves.getUsedLeaves() - leave.getNoOfDays());
+            empLeaves.setRemainingLeaves(empLeaves.getRemainingLeaves() + leave.getNoOfDays());
+
+            // safety bounds
+            if (empLeaves.getUsedLeaves() < 0) empLeaves.setUsedLeaves(0f);
+            if (empLeaves.getRemainingLeaves() > empLeaves.getTotalLeaves())
+                empLeaves.setRemainingLeaves(empLeaves.getTotalLeaves());
+
+            empLeaves.setUpdatedBy(userId);
+            empLeaves.setUpdatedOn(Instant.now());
+
+            empLeaveRepo.save(empLeaves);
+        }
+
+        // mark leave cancelled
+        leave.setStatus(LeaveStatus.CANCELLED);
+        leave.setRemarks(request.getRemarks());
+        leave.setAppRejBy(userId);
+        leave.setAppRejOn(LocalDate.now());
+
+        leaveRepo.save(leave);
+
+        return CancelLeaveResponseDto.builder()
+                .message("Leave cancelled successfully")
+                .cancelledOn(Instant.now())
                 .build();
     }
 }

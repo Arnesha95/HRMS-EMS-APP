@@ -11,6 +11,8 @@ public interface LeaveService {
 
     LeaveApprovalResponseDto approveOrReject(LeaveApprovalRequestDto request, UUID hrId);
 
+    CancelLeaveResponseDto cancelLeave(CancelLeaveRequestDto request, UUID userId);
+
     LeaveApprovalResponseDto creditYearlyLeaves(int year);
 
     List<EmployeeLeaveResponseDto> getEmployeeLeaveBalance(UUID empId);

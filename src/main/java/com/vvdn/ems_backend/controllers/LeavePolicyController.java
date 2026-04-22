@@ -7,6 +7,7 @@ import com.vvdn.ems_backend.services.LeavePolicyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class LeavePolicyController {
 
     private final LeavePolicyService leavePolicyService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/leave-policy")
     public ResponseEntity<LeavePolicyResponseDto> createPolicy(
             @RequestBody LeavePolicyRequestDto request) {
@@ -29,6 +31,7 @@ public class LeavePolicyController {
         );
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
     @GetMapping("/leave-policy/{id}")
     public ResponseEntity<LeavePolicy> getPolicyById(
             @PathVariable UUID policyId) {
@@ -38,6 +41,8 @@ public class LeavePolicyController {
         );
     }
 
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     @GetMapping("/leave-policy")
     public ResponseEntity<List<LeavePolicy>> getAllPolicies() {
         return ResponseEntity.ok(
@@ -45,6 +50,7 @@ public class LeavePolicyController {
         );
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/leave-policy/{policyId}")
     public ResponseEntity<LeavePolicyResponseDto> updatePolicy(
             @PathVariable UUID policyId,
@@ -55,6 +61,7 @@ public class LeavePolicyController {
         );
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/leave-policy/{policyId}")
     public ResponseEntity<LeavePolicyResponseDto> patchPolicy(
             @PathVariable UUID policyId,
@@ -65,6 +72,7 @@ public class LeavePolicyController {
         );
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/leave-policy/{policyId}")
     public ResponseEntity<LeavePolicyResponseDto> deletePolicy(
             @PathVariable UUID policyId) {

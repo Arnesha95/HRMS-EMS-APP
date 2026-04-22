@@ -5,6 +5,7 @@ import com.vvdn.ems_backend.services.impl.DesignationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public class DesignationController {
 
     private final DesignationService designationService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/designation")
     public ResponseEntity<DesignationResponseDto> addDesignation(@RequestBody DesignationRequestDto designationRequestDto){
 
@@ -25,16 +27,20 @@ public class DesignationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     @GetMapping("/designations")
     public ResponseEntity<List<DesignationListResponseDto>>getActiveDesignations(){
         return ResponseEntity.ok(designationService.getActiveDesignations());
     }
 
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     @GetMapping("/designation/{id}")
     public ResponseEntity<DesignationListResponseDto>getDepartmentById(@PathVariable UUID id){
         return ResponseEntity.ok(designationService.getDesignationByID(id));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/designation/{id}")
     public ResponseEntity<DesignationResponseDto> updateDesignation(
             @PathVariable UUID id,
@@ -45,6 +51,7 @@ public class DesignationController {
         return ResponseEntity.ok(response);
     }
 
+
     @DeleteMapping("/designation/{id}")
     public ResponseEntity<DesignationResponseDto> deleteDesignation(@PathVariable UUID id) {
 
@@ -53,6 +60,8 @@ public class DesignationController {
         return ResponseEntity.ok(response);
     }
 
+
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @PatchMapping("/designation/{id}/deactivate")
     public ResponseEntity<DesignationResponseDto> deactivateDesignation(@PathVariable UUID id) {
 

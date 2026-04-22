@@ -8,6 +8,7 @@ import com.vvdn.ems_backend.entity.Employee;
 import com.vvdn.ems_backend.services.EmpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,12 +21,14 @@ public class EmpController {
 
     private final EmpService service;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     @PostMapping("/onboarding")
     public EmpResponseDto addEmployee(@RequestBody EmpRequestDto request) {
         return service.addEmployee(request);
     }
 
 
+    @PreAuthorize("hasRole('HR')")
     @PutMapping("/{empId}")
     public EmpResponseDto updateEmployee(@PathVariable UUID empId,
                                               @RequestBody EmpRequestDto request) {
@@ -34,34 +37,41 @@ public class EmpController {
     }
 
 
+    @PreAuthorize("hasRole('HR')")
     @DeleteMapping("/{empId}")
     public EmpResponseDto deactivateEmployee(@PathVariable UUID empId) {
         return service.deactivateEmployee(empId);
     }
 
 
+    @PreAuthorize("hasAnyRole('HR', 'EMPLOYEE', 'ADMIN')")
     @GetMapping("/{empId}")
     public Employee getEmployeeById(@PathVariable UUID empId) {
         return service.getEmployeeById(empId);
     }
 
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     @GetMapping
     public List<Employee> getAllEmployees() {
         return service.getAllEmployees();
     }
 
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'EMPLOYEE')")
     @GetMapping("/summary")
     public EmployeeSummaryDto getSummary() {
         return service.getEmployeeSummary();
     }
 
 
+    @PreAuthorize("hasAnyRole('HR', 'EMPLOYEE', 'ADMIN')")
     @GetMapping("/birthdays/today")
     public ResponseEntity<List<EmployeeEventDto>> getTodaysBirthdays() {
         return ResponseEntity.ok(service.getTodaysBirthdays());
     }
 
+    @PreAuthorize("hasAnyRole('HR', 'EMPLOYEE', 'ADMIN')")
     @GetMapping("/anniversaries/today")
     public ResponseEntity<List<EmployeeEventDto>> getTodaysAnniversaries() {
         return ResponseEntity.ok(service.getTodaysAnniversaries());

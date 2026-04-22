@@ -6,6 +6,7 @@ import com.vvdn.ems_backend.services.EmployeeOffboardingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,7 +19,7 @@ public class EmployeeOffboardingController {
 
     private final EmployeeOffboardingService service;
 
-
+    @PreAuthorize("hasAnyRole('HR', 'EMPLOYEE', 'ADMIN')")
     @PostMapping("/resignation")
     public ResponseEntity<ResignationResponseDto> applyResignation(@RequestBody ResignationRequestDto dto) {
 
@@ -26,7 +27,7 @@ public class EmployeeOffboardingController {
 
     }
 
-
+    @PreAuthorize("hasRole('HR')")
     @GetMapping("/resignation")
     public ResponseEntity<List<ResignationResponseDto>> getResignations(
             @RequestParam(required = false) OffboardingStatus status
@@ -41,7 +42,7 @@ public class EmployeeOffboardingController {
         return ResponseEntity.ok(list);
     }
 
-
+    @PreAuthorize("hasAnyRole('HR','ADMIN')")
     @PutMapping("/resignation/{offBoardingId}/action")
     public ResponseEntity<ResignationResponseDto> takeAction(
             @PathVariable UUID offBoardingId,
@@ -55,6 +56,7 @@ public class EmployeeOffboardingController {
     }
 
 
+    @PreAuthorize("hasRole('HR')")
     @PostMapping("/termination")
     public ResponseEntity<TerminationResponseDto> initiateTermination(
             @RequestBody TerminationRequestDto dto
@@ -66,7 +68,7 @@ public class EmployeeOffboardingController {
     }
 
 
-
+    @PreAuthorize("hasAnyRole('HR', 'EMPLOYEE', 'ADMIN')")
     @GetMapping("/termination")
     public ResponseEntity<List<TerminationResponseDto>> getTerminations(
             @RequestParam(required = false) OffboardingStatus status
@@ -81,6 +83,7 @@ public class EmployeeOffboardingController {
         return ResponseEntity.ok(list);
     }
 
+    @PreAuthorize("hasAnyRole('HR')")
     @PutMapping("/termination/{offBoardingId}/action")
     public ResponseEntity<TerminationResponseDto> takeTerminationAction(
             @PathVariable UUID offBoardingId,

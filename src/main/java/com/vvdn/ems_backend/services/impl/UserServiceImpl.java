@@ -2,10 +2,10 @@ package com.vvdn.ems_backend.services.impl;
 
 import com.vvdn.ems_backend.dtos.UserRequestDto;
 import com.vvdn.ems_backend.dtos.UserResponseDto;
-import com.vvdn.ems_backend.entity.Employee;
+
 import com.vvdn.ems_backend.entity.Role;
 import com.vvdn.ems_backend.entity.User;
-import com.vvdn.ems_backend.repository.EmpRepository;
+
 import com.vvdn.ems_backend.repository.UserRepository;
 import com.vvdn.ems_backend.services.UserService;
 import lombok.RequiredArgsConstructor;

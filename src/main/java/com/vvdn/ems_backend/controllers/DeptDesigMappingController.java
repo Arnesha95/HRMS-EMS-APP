@@ -5,6 +5,7 @@ import com.vvdn.ems_backend.dtos.DeptWiseDesigResponseDto;
 import com.vvdn.ems_backend.dtos.DesignationDto;
 import com.vvdn.ems_backend.services.DeptDesigMappingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,7 +18,7 @@ public class DeptDesigMappingController {
 
     private final DeptDesigMappingService service;
 
-
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/dept-desig")
     public DeptWiseDesigResponseDto addMappings(
             @RequestBody DeptDesigMappingRequestDto requestDto
@@ -25,7 +26,7 @@ public class DeptDesigMappingController {
         return service.addMappings(requestDto);
     }
 
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     @GetMapping("/dept-desig/{deptId}/details")
     public List<DesignationDto> getDesignationDetailsByDept(
             @PathVariable UUID deptId
@@ -34,12 +35,14 @@ public class DeptDesigMappingController {
     }
 
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     @GetMapping("/dept-desig/{deptId}")
     public List<UUID> getDesignationsByDept(
             @PathVariable UUID deptId
     ) {
         return service.getDesignationsByDept(deptId);
     }
+
 
     @DeleteMapping("/dept-desig")
     public DeptWiseDesigResponseDto deleteMapping(

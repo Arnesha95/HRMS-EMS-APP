@@ -21,6 +21,7 @@ public class DepartmentController {
     private final DepartmentService departmentService;
 
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<DepartmentResponseDto>addDepartment(@RequestBody DepartmentRequestDto departmentRequestDto){
 
@@ -29,40 +30,42 @@ public class DepartmentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     @GetMapping
     public ResponseEntity<List<DepartmentListResponseDto>>getActiveDepartments(){
         return ResponseEntity.ok(departmentService.getActiveDepartments());
     }
 
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     @GetMapping("/{deptId}")
-    public ResponseEntity<DepartmentListResponseDto>getDepartmentById(@PathVariable UUID id){
-        return ResponseEntity.ok(departmentService.getDepartmentByID(id));
+    public ResponseEntity<DepartmentListResponseDto>getDepartmentById(@PathVariable UUID deptId){
+        return ResponseEntity.ok(departmentService.getDepartmentByID(deptId));
     }
 
 
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{deptId}")
     public ResponseEntity<DepartmentResponseDto> updateDepartment(
-            @PathVariable UUID id,
+            @PathVariable UUID deptId,
             @RequestBody DepartmentRequestDto request) {
 
-        DepartmentResponseDto response = departmentService.updateDepartment(id, request);
+        DepartmentResponseDto response = departmentService.updateDepartment(deptId, request);
 
         return ResponseEntity.ok(response);
     }
 
 
     @DeleteMapping("/{deptId}")
-    public ResponseEntity<DepartmentResponseDto> deleteDepartment(@PathVariable UUID id) {
+    public ResponseEntity<DepartmentResponseDto> deleteDepartment(@PathVariable UUID deptId) {
 
-        DepartmentResponseDto response = departmentService.deleteDepartment(id);
+        DepartmentResponseDto response = departmentService.deleteDepartment(deptId);
 
         return ResponseEntity.ok(response);
     }
 
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{deptId}/deactivate")
     public ResponseEntity<DepartmentResponseDto> deactivateDepartment(@PathVariable UUID deptId) {
 

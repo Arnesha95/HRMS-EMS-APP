@@ -1,5 +1,6 @@
 package com.vvdn.ems_backend.controllers;
 
+import com.vvdn.ems_backend.dtos.ChangePasswordRequest;
 import com.vvdn.ems_backend.dtos.LoginRequest;
 import com.vvdn.ems_backend.dtos.LoginResponse;
 import com.vvdn.ems_backend.dtos.RefreshTokenRequest;
@@ -13,10 +14,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ResponseStatusException;
@@ -35,12 +34,18 @@ public class AuthController {
 
     private final UserRepository userRepository;
 
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, AuthService authService, UserRepository userRepository) {
+
+    public AuthController(AuthenticationManager authenticationManager,
+                          JwtUtil jwtUtil, AuthService authService,
+                          UserRepository userRepository,
+                          PasswordEncoder passwordEncoder) {
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
         this.authService = authService;
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
         logger.info("AuthController initialized");
     }
 
@@ -78,6 +83,7 @@ public class AuthController {
                     user.getEmployee().getEmpId(),
                     user.getUsername(),
                     user.getRole().name()
+
             );
 
             String refreshToken = jwtUtil.generateRefreshToken(
@@ -93,7 +99,8 @@ public class AuthController {
                     refreshToken,
                     "Login successful",
                     user.getRole().name(),
-                    user.getUsername()
+                    user.getUsername(),
+                    user.getIsFirstLogin()
             );
 
         } catch (AuthenticationException exception) {
@@ -124,6 +131,29 @@ public class AuthController {
         logger.info("User logged out successfully");
 
         return "Logout successful";
+    }
+
+    @PostMapping("/change-password")
+    public String changePassword(
+            @RequestBody ChangePasswordRequest request,
+            Authentication authentication
+    ) {
+
+        String username = authentication.getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new RuntimeException("Invalid old password");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setIsFirstLogin(false);
+
+        userRepository.save(user);
+
+        return "Password changed successfully";
     }
 }
 

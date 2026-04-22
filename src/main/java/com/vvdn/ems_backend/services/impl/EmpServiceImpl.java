@@ -31,17 +31,18 @@ public class EmpServiceImpl implements EmpService {
     private final DepartmentRepository departmentRepository;
     private final DesignationRepository designationRepository;
     private final EmploymentTypeRepository employmentTypeRepository;
+    private final PasswordEncoder passwordEncoder;
 
     private String generateDefaultPassword() {
+
         return "Emp@" + System.currentTimeMillis();
     }
 
-    @Bean
-    public PasswordEncoder onboadingPasswordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+//    @Bean
+//    public PasswordEncoder onboadingPasswordEncoder() {
+//        return new BCryptPasswordEncoder();
+//    }
 
-    private final PasswordEncoder onboardingPasswordEncoder;
 
 
     @Override
@@ -78,41 +79,43 @@ public class EmpServiceImpl implements EmpService {
                 .createdBy(request.getCreatedBy())
                 .build();
 
-
-        Employee savedEmployee = repository.save(employee);
-
-
-        String username = savedEmployee.getEmail();
-        String defaultPassword = generateDefaultPassword();
-        String encodedPassword = onboardingPasswordEncoder.encode(defaultPassword);
+        Employee saved = repository.save(employee);
 
 
-        Role assignedRole;
-        if (request.getRole() != null) {
-            assignedRole = request.getRole();
-        } else {
-            assignedRole = Role.EMPLOYEE;
-        }
+        String username = saved.getEmail();
+//        String defaultPassword = generateDefaultPassword();
+//        String encodedPassword = onboardingPasswordEncoder.encode(defaultPassword);
+
+        String rawPassword = generateDefaultPassword();
+
+
+//        Role assignedRole;
+//        if (request.getRole() != null) {
+//            assignedRole = request.getRole();
+//        } else {
+//            assignedRole = Role.EMPLOYEE;
+//        }
 
 
         User user = User.builder()
-                .username(username)
-                .password(encodedPassword)
-                .role(assignedRole)
-                .employee(savedEmployee)
+                .username(saved.getEmail())
+                .password(passwordEncoder.encode(rawPassword))
+                .employee(saved)
+                .role(request.getRole() != null ? request.getRole() : Role.EMPLOYEE)
                 .isActive(true)
-                .createdBy(request.getCreatedBy())
+                .isFirstLogin(true)
                 .createdOn(Instant.now())
                 .build();
 
         userRepository.save(user);
 
         return EmpResponseDto.builder()
-                .message("Employee added successfully")
-                .username(username)
-                .password(defaultPassword)
-                .empId(savedEmployee.getEmpId())
+                .message("Employee created successfully")
+                .username(saved.getEmail())
+                .password(rawPassword) // show ONLY once
+                .empId(saved.getEmpId())
                 .build();
+
     }
 
     @Override

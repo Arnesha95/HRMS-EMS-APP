@@ -27,7 +27,8 @@ public class JwtUtil {
                 .claim("type", "access")
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 15 * 60 * 1000))
-                .signWith(Keys.hmacShaKeyFor(SECRET.getBytes()))
+               // .signWith(Keys.hmacShaKeyFor(SECRET.getBytes()))
+                .signWith(key)
                 .compact();
     }
 

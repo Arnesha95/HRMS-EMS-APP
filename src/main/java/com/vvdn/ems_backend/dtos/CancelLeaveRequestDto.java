@@ -5,9 +5,7 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class LeaveApprovalRequestDto {
-
+public class CancelLeaveRequestDto {
     private UUID leaveApplicationId;
-    private String status; // APPROVED / REJECTED
     private String remarks;
 }

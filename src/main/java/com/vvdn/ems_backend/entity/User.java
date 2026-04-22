@@ -44,6 +44,9 @@ public class User implements UserDetails {
     @Column(name = "is_active")
     private boolean isActive;
 
+    @Column(name = "is_first_login", nullable = false)
+    private Boolean isFirstLogin = true;
+
     @Column(name = "created_at")
     private Instant createdOn;
 
