@@ -18,7 +18,7 @@ public class EmployeeLeaveController {
 
     private final EmployeeLeaveService employeeLeaveService;
 
-    @PreAuthorize("hasAnyRole('HR', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'EMPLOYEE')")
     @PostMapping("/allocate")
     public List<EmployeeLeaveResponseDto> allocateLeaves(
             @RequestBody EmployeeLeaveRequestDto request) {
@@ -26,7 +26,7 @@ public class EmployeeLeaveController {
         return employeeLeaveService.allocateLeaves(request);
     }
 
-    @PreAuthorize("hasAnyRole('HR', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'EMPLOYEE')")
     @GetMapping("/{empId}")
     public List<EmployeeLeaveResponseDto> getEmployeeLeaves(
             @PathVariable UUID empId) {
