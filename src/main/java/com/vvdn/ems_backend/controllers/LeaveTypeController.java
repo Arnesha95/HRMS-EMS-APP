@@ -29,7 +29,7 @@ public class LeaveTypeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PreAuthorize("hasRole('ADMIN', 'HR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'EMPLOYEE')")
     @GetMapping("/leaveType/{leaveTypeId}")
     public ResponseEntity<LeaveType> getLeaveType(
             @PathVariable UUID leaveTypeId) {
@@ -39,6 +39,7 @@ public class LeaveTypeController {
         );
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'EMPLOYEE')")
     @GetMapping("/leaveTypes")
     public ResponseEntity<List<LeaveType>>getAllLeaveTypes(){
 

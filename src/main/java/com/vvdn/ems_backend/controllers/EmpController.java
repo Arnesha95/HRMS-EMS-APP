@@ -51,7 +51,7 @@ public class EmpController {
     }
 
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'EMPLOYEE')")
     @GetMapping
     public List<Employee> getAllEmployees() {
         return service.getAllEmployees();

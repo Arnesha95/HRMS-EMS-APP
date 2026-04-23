@@ -106,18 +106,18 @@ public class LeaveServiceImpl implements LeaveService {
                 LeaveStatus.APPROVED
         );
 
-        boolean exists = leaveRepo
-                .existsByEmployeeLeaves_Employee_EmpIdAndStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                        empLeaves.getEmployee().getEmpId(),
-                        List.of(LeaveStatus.PENDING),
-                        request.getEndDate(),
-                        request.getStartDate()
-                );
-
-        if (exists) {
-            throw new BadRequestException(
-                    "Leave already applied for selected dates (Pending request exists)");
-        }
+//        boolean exists = leaveRepo
+//                .existsByEmployeeLeaves_Employee_EmpIdAndStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+//                        empLeaves.getEmployee().getEmpId(),
+//                        List.of(LeaveStatus.PENDING),
+//                        request.getEndDate(),
+//                        request.getStartDate()
+//                );
+//
+//        if (exists) {
+//            throw new BadRequestException(
+//                    "Leave already applied for selected dates (Pending request exists)");
+//        }
 
         return new ApplyLeaveResponseDto("Leave applied successfully");
     }
@@ -558,21 +558,27 @@ public class LeaveServiceImpl implements LeaveService {
             throw new BadRequestException("Rejected leave cannot be cancelled");
         }
 
-        // if approved → restore balance
-        if (leave.getStatus() == LeaveStatus.APPROVED) {
+// restore balance for BOTH pending and approved
+        if (leave.getStatus() == LeaveStatus.APPROVED
+                || leave.getStatus() == LeaveStatus.PENDING) {
 
             empLeaves.setUsedLeaves(empLeaves.getUsedLeaves() - leave.getNoOfDays());
             empLeaves.setRemainingLeaves(empLeaves.getRemainingLeaves() + leave.getNoOfDays());
 
             // safety bounds
-            if (empLeaves.getUsedLeaves() < 0) empLeaves.setUsedLeaves(0f);
-            if (empLeaves.getRemainingLeaves() > empLeaves.getTotalLeaves())
+            if (empLeaves.getUsedLeaves() < 0) {
+                empLeaves.setUsedLeaves(0f);
+            }
+
+            if (empLeaves.getRemainingLeaves() > empLeaves.getTotalLeaves()) {
                 empLeaves.setRemainingLeaves(empLeaves.getTotalLeaves());
+            }
 
             empLeaves.setUpdatedBy(userId);
             empLeaves.setUpdatedOn(Instant.now());
 
             empLeaveRepo.save(empLeaves);
+
         }
 
         // mark leave cancelled

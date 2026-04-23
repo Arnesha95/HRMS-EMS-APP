@@ -31,7 +31,7 @@ public class LeavePolicyController {
         );
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','HR')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR', 'EMPLOYEE')")
     @GetMapping("/leave-policy/{id}")
     public ResponseEntity<LeavePolicy> getPolicyById(
             @PathVariable UUID policyId) {
@@ -42,7 +42,7 @@ public class LeavePolicyController {
     }
 
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'EMPLOYEE')")
     @GetMapping("/leave-policy")
     public ResponseEntity<List<LeavePolicy>> getAllPolicies() {
         return ResponseEntity.ok(
