@@ -17,7 +17,7 @@ public class PasswordResetService {
 
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository tokenRepository;
-    private final EmailService emailService;
+   // private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
 
     public void requestReset(String email) {
@@ -36,7 +36,7 @@ public class PasswordResetService {
         tokenRepository.deleteByUser(user);
         tokenRepository.save(resetToken);
 
-        emailService.sendResetEmail(user.getUsername(), token);
+      //  emailService.sendResetEmail(user.getUsername(), token);
     }
 
     public void resetPassword(String token, String newPassword) {
