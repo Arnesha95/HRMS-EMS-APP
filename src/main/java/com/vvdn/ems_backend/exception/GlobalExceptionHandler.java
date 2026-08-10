@@ -1,6 +1,7 @@
 package com.vvdn.ems_backend.exception;
 
 import com.vvdn.ems_backend.dtos.ApiError;
+import io.swagger.v3.oas.models.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -206,6 +208,19 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
     }
+
+//    @ExceptionHandler(ResourceNotFoundException.class)
+//    public ResponseEntity<ApiResponse<Object>> handleNotFound(ResourceNotFoundException ex) {
+//
+//        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+//                ApiResponse.builder()
+//                        .timestamp(Instant.now())
+//                        .status(HttpStatus.NOT_FOUND.value())
+//                        .message(ex.getMessage())
+//                        .data(null)
+//                        .build()
+//        );
+//    }
 
 
 

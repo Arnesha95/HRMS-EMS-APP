@@ -49,9 +49,9 @@ public class EmployeeOffboardingController {
             @Valid @RequestBody HrActionDto dto
     ) {
 
-        UUID hrId = UUID.randomUUID();
+        //UUID hrId = UUID.randomUUID();
 
-        return ResponseEntity.ok(service.takeAction(offBoardingId, dto, hrId));
+        return ResponseEntity.ok(service.takeAction(offBoardingId, dto));
 
     }
 
@@ -62,9 +62,9 @@ public class EmployeeOffboardingController {
             @RequestBody TerminationRequestDto dto
     ) {
 
-        UUID hrId = UUID.randomUUID();
+        //UUID hrId = UUID.randomUUID();
 
-        return ResponseEntity.ok(service.initiateTermination(dto, hrId));
+        return ResponseEntity.ok(service.initiateTermination(dto));
     }
 
 
@@ -89,8 +89,8 @@ public class EmployeeOffboardingController {
             @PathVariable UUID offBoardingId,
             @Valid @RequestBody HrActionDto dto
     ) {
-        UUID hrId = UUID.randomUUID();
-        return ResponseEntity.ok(service.takeTerminationAction(offBoardingId, dto, hrId));
+        //UUID hrId = UUID.randomUUID();
+        return ResponseEntity.ok(service.takeTerminationAction(offBoardingId, dto));
     }
 
 }

@@ -8,8 +8,6 @@ import com.vvdn.ems_backend.entity.*;
 import com.vvdn.ems_backend.repository.*;
 import com.vvdn.ems_backend.services.EmpService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -38,11 +36,29 @@ public class EmpServiceImpl implements EmpService {
         return "Emp@" + System.currentTimeMillis();
     }
 
-//    @Bean
-//    public PasswordEncoder onboadingPasswordEncoder() {
-//        return new BCryptPasswordEncoder();
-//    }
+    private void validateDateOfBirth(LocalDate dob) {
 
+        if (dob == null) {
+            throw new RuntimeException("Date of birth is required");
+        }
+
+        LocalDate today = LocalDate.now();
+
+        if (dob.isAfter(today)) {
+            throw new RuntimeException("Date of birth cannot be in the future");
+        }
+
+        int age = today.getYear() - dob.getYear();
+
+        // Adjust if birthday hasn't occurred yet this year
+        if (dob.plusYears(age).isAfter(today)) {
+            age--;
+        }
+
+        if (age < 18) {
+            throw new RuntimeException("Employee must be at least 18 years old");
+        }
+    }
 
 
     @Override
@@ -55,6 +71,9 @@ public class EmpServiceImpl implements EmpService {
 
         EmploymentType empType = employmentTypeRepository.findById(request.getEmploymentTypeId())
                 .orElseThrow(() -> new RuntimeException("Employment Type not found"));
+
+
+        validateDateOfBirth(request.getDateOfBirth());
 
 
         Employee employee = Employee.builder()
@@ -148,8 +167,10 @@ public class EmpServiceImpl implements EmpService {
         if (request.getPhone() != null)
             employee.setPhone(request.getPhone());
 
-        if (request.getDateOfBirth() != null)
+        if (request.getDateOfBirth() != null) {
+            validateDateOfBirth(request.getDateOfBirth());
             employee.setDateOfBirth(request.getDateOfBirth());
+        }
 
         if (request.getAddress() != null)
             employee.setAddress(request.getAddress());

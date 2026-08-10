@@ -46,10 +46,6 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new DisabledException("User account is inactive");
         }
 
-//        if (user.getEmployee() == null) {
-//            logger.warn("User has no employee mapped: {}", username);
-//            throw new LockedException("User is not mapped to any employee");
-//        }
 
         if (!user.getEmployee().getIsActive()) {
             logger.warn("Employee is inactive for user: {}", username);

@@ -8,8 +8,8 @@ import java.util.UUID;
 @Data
 public class ResignationRequestDto {
 
-    private UUID empId;
-    private LocalDate resignationDate;
+    //private UUID empId;
+   // private LocalDate resignationDate;
     private LocalDate proposedLastWorkingDate;
     private String reason;
 

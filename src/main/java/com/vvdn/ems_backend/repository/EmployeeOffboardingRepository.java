@@ -27,4 +27,10 @@ public interface EmployeeOffboardingRepository extends JpaRepository<EmployeeOff
 
     boolean existsByEmployeeEmpIdAndOffboardingType(UUID empId, OffboardingType offboardingType);
 
+    boolean existsByEmployeeEmpIdAndOffboardingTypeAndOffboardingStatusIn(
+            UUID empId,
+            OffboardingType type,
+            List<OffboardingStatus> statuses
+    );
+
 }

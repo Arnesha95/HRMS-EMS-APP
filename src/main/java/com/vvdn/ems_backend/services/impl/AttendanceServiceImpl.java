@@ -157,8 +157,13 @@ public class AttendanceServiceImpl implements AttendanceService {
     }
 
     private AttendancePolicy getActivePolicy() {
-        return attendancePolicyRepository.findByIsActiveTrue()
+
+        return attendancePolicyRepository
+                .findTopByIsActiveTrueOrderByCreatedOnDesc()
                 .orElseThrow(() -> new RuntimeException("No active policy"));
+
+//        return attendancePolicyRepository.findByIsActiveTrue()
+//                .orElseThrow(() -> new RuntimeException("No active policy"));
     }
 
     private DailyAttendanceDto buildResponse(UUID empId, LocalDate date,

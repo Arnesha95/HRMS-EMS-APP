@@ -17,7 +17,6 @@ public class JwtUtil {
     private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
 
-
     public String generateAccessToken(UUID id, UUID empId, String username, String role) {
         return Jwts.builder()
                 .setSubject(username)
@@ -26,8 +25,7 @@ public class JwtUtil {
                 .claim("role", role)
                 .claim("type", "access")
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 30 * 60 * 1000))
-               // .signWith(Keys.hmacShaKeyFor(SECRET.getBytes()))
+                .setExpiration(new Date(System.currentTimeMillis() + 15 * 60 * 1000))
                 .signWith(key)
                 .compact();
     }
@@ -42,7 +40,7 @@ public class JwtUtil {
                 .claim("type", "refresh")
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000))
-               // .signWith(Keys.hmacShaKeyFor(SECRET.getBytes()))
+                // .signWith(Keys.hmacShaKeyFor(SECRET.getBytes()))
                 .signWith(key)
                 .compact();
     }
@@ -51,7 +49,7 @@ public class JwtUtil {
     public String extractTokenType(String token) {
 
         return extractAllClaims(token).get("type", String.class);
-   }
+    }
 
     public String extractUsername(String token) {
 

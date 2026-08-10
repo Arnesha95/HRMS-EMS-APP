@@ -106,19 +106,6 @@ public class LeaveServiceImpl implements LeaveService {
                 LeaveStatus.APPROVED
         );
 
-//        boolean exists = leaveRepo
-//                .existsByEmployeeLeaves_Employee_EmpIdAndStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-//                        empLeaves.getEmployee().getEmpId(),
-//                        List.of(LeaveStatus.PENDING),
-//                        request.getEndDate(),
-//                        request.getStartDate()
-//                );
-//
-//        if (exists) {
-//            throw new BadRequestException(
-//                    "Leave already applied for selected dates (Pending request exists)");
-//        }
-
         return new ApplyLeaveResponseDto("Leave applied successfully");
     }
 
@@ -156,7 +143,6 @@ public class LeaveServiceImpl implements LeaveService {
             float updatedUsed = empLeaves.getUsedLeaves() - leave.getNoOfDays();
             float updatedRemaining = empLeaves.getRemainingLeaves() + leave.getNoOfDays();
 
-            // Safety guards
             if (updatedUsed < 0) {
                 updatedUsed = 0;
             }
@@ -296,10 +282,6 @@ public class LeaveServiceImpl implements LeaveService {
         List<LeaveApplication> applications =
                 leaveRepo.findByEmployeeLeaves_Employee_EmpIdOrderByCreatedOnDesc(empId);
 
-//        if (applications.isEmpty()) {
-//            throw new BadRequestException("No leave history found");
-//        }
-
         List<LeaveHistoryResponseDto> response = new ArrayList<>();
 
 
@@ -428,7 +410,7 @@ public class LeaveServiceImpl implements LeaveService {
             dto.remaining(dto.build().getRemaining() + el.getRemainingLeaves());
         }
 
-        // 🔹 Add request counts per type
+
         List<LeaveApplication> apps = leaveRepo.findAll();
 
         for (LeaveApplication app : apps) {
@@ -544,12 +526,11 @@ public class LeaveServiceImpl implements LeaveService {
 
         EmployeeLeave empLeaves = leave.getEmployeeLeaves();
 
-        // ownership check
         if (!empLeaves.getEmployee().getEmpId().equals(userId)) {
             throw new BadRequestException("You can only cancel your own leave");
         }
 
-        // already processed?
+
         if (leave.getStatus() == LeaveStatus.CANCELLED) {
             throw new BadRequestException("Leave already cancelled");
         }

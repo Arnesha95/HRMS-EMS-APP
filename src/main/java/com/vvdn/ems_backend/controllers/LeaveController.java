@@ -22,18 +22,6 @@ public class LeaveController {
     private final EmpRepository empRepo;
 
 
-
-//    private UUID getLoggedInUserId() {
-//
-//        String email = SecurityContextHolder.getContext()
-//                .getAuthentication()
-//                .getName();
-//
-//        return empRepo.findByEmail(email)
-//                .orElseThrow(() -> new RuntimeException("User not found"))
-//                .getEmpId();
-//    }
-
     private UUID getLoggedInUserId() {
 
         var context = SecurityContextHolder.getContext();
@@ -62,15 +50,6 @@ public class LeaveController {
         );
     }
 
-
-//    @PostMapping("/approve-reject")
-//    public ResponseEntity<LeaveApprovalResponseDto> approveReject(
-//            @RequestBody LeaveApprovalRequestDto request
-//    ) {
-//        return ResponseEntity.ok(
-//                leaveService.approveOrReject(request, request.getHrId())
-//        );
-//    }
 
     @PreAuthorize("hasRole('HR')")
     @PostMapping("/approve-reject")

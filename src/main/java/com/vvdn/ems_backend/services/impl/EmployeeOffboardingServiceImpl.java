@@ -2,11 +2,12 @@ package com.vvdn.ems_backend.services.impl;
 
 import com.vvdn.ems_backend.dtos.*;
 import com.vvdn.ems_backend.entity.*;
+import com.vvdn.ems_backend.exception.BadRequestException;
 import com.vvdn.ems_backend.repository.EmpRepository;
 import com.vvdn.ems_backend.repository.EmployeeOffboardingRepository;
-import com.vvdn.ems_backend.repository.UserRepository;
 import com.vvdn.ems_backend.services.EmployeeOffboardingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,42 +25,76 @@ public class EmployeeOffboardingServiceImpl implements EmployeeOffboardingServic
 
     private final EmployeeOffboardingRepository offboardingRepo;
     private final EmpRepository employeeRepo;
-    private final UserRepository userRepo;
+    //private final UserRepository userRepo;
+
+    private UUID getLoggedInUserId() {
+
+        var context = SecurityContextHolder.getContext();
+        var authentication = context.getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new BadRequestException("User not authenticated");
+        }
+
+        String email = authentication.getName();
+
+        return employeeRepo.findByEmail(email)
+                .orElseThrow(() -> new BadRequestException("User not found"))
+                .getEmpId();
+    }
 
     @Override
     public ResignationResponseDto applyResignation(ResignationRequestDto dto) {
 
+        UUID empId = getLoggedInUserId();
 
-        if (dto.getResignationDate().isAfter(LocalDate.now())) {
-            throw new RuntimeException("Resignation date cannot be in future");
+        Employee emp = employeeRepo.findById(empId)
+                .orElseThrow(() -> new BadRequestException("Employee not found"));
+
+
+        LocalDate today = LocalDate.now();
+        //LocalDate resignationDate = today;
+
+        if (dto.getProposedLastWorkingDate() == null) {
+            throw new BadRequestException("Proposed last working date is required");
         }
 
-        if (dto.getProposedLastWorkingDate().isBefore(dto.getResignationDate())) {
-            throw new RuntimeException("Last working date cannot be before resignation date");
+        if (dto.getProposedLastWorkingDate().isBefore(today)) {
+            throw new BadRequestException("Last working date cannot be in the past");
         }
 
-        if (dto.getProposedLastWorkingDate().isBefore(dto.getResignationDate().plusDays(30))) {
-            throw new RuntimeException("Notice period must be at least 30 days");
+        if (dto.getProposedLastWorkingDate().isBefore(today.plusDays(30))) {
+            throw new BadRequestException("Notice period must be at least 30 days");
         }
+
+
+//        if (dto.getResignationDate().isAfter(LocalDate.now())) {
+//            throw new RuntimeException("Resignation date cannot be in future");
+//        }
+//
+//        if (dto.getProposedLastWorkingDate().isBefore(dto.getResignationDate())) {
+//            throw new RuntimeException("Last working date cannot be before resignation date");
+//        }
+//
+//        if (dto.getProposedLastWorkingDate().isBefore(dto.getResignationDate().plusDays(30))) {
+//            throw new RuntimeException("Notice period must be at least 30 days");
+//        }
 
 
         boolean exists = offboardingRepo.existsByEmployeeEmpIdAndOffboardingStatus(
-                dto.getEmpId(),
+                empId,
                 OffboardingStatus.PENDING
         );
 
         if (exists) {
-            throw new RuntimeException("Resignation already pending");
+            throw new BadRequestException("Resignation already pending");
         }
-
-        Employee emp = employeeRepo.findById(dto.getEmpId())
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
 
 
         EmployeeOffboarding entity = EmployeeOffboarding.builder()
                 .employee(emp)
                 .offboardingType(RESIGNATION)
-                .resignationDate(dto.getResignationDate())
+                .resignationDate(today)
                 .proposedLastWorkingDate(dto.getProposedLastWorkingDate())
                 .reason(dto.getReason())
                 .offboardingStatus(OffboardingStatus.PENDING)
@@ -94,23 +129,34 @@ public class EmployeeOffboardingServiceImpl implements EmployeeOffboardingServic
 
     @Transactional
     @Override
-    public ResignationResponseDto takeAction(UUID offboardingId, HrActionDto dto, UUID hrId) {
+    public ResignationResponseDto takeAction(UUID offboardingId, HrActionDto dto) {
+
+
+        UUID hrId = getLoggedInUserId();
+
 
         EmployeeOffboarding entity = offboardingRepo.findById(offboardingId)
                 .orElseThrow(() -> new RuntimeException("Request not found"));
 
         if (entity.getOffboardingStatus() != OffboardingStatus.PENDING) {
-            throw new RuntimeException("Already processed");
+            throw new BadRequestException("Already processed");
         }
 
         if (dto.getStatus() == OffboardingStatus.APPROVED) {
 
             if (dto.getFinalLastWorkingDate() == null) {
-                throw new RuntimeException("Final last working date is required for approval");
+                throw new BadRequestException("Final last working date is required for approval");
             }
 
+            LocalDate today = LocalDate.now();
+
+            if (dto.getFinalLastWorkingDate().isBefore(today)) {
+                throw new BadRequestException("Final last working date cannot be in the past");
+            }
+
+
             if (dto.getFinalLastWorkingDate().isBefore(entity.getResignationDate())) {
-                throw new RuntimeException("Invalid last working date");
+                throw new BadRequestException("Invalid last working date");
             }
         }
 
@@ -138,18 +184,31 @@ public class EmployeeOffboardingServiceImpl implements EmployeeOffboardingServic
 
     @Transactional
     @Override
-    public TerminationResponseDto initiateTermination(TerminationRequestDto dto, UUID hrId) {
+    public TerminationResponseDto initiateTermination(TerminationRequestDto dto) {
+
+        UUID hrId = getLoggedInUserId();
 
         Employee emp = employeeRepo.findById(dto.getEmpId())
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() -> new BadRequestException("Employee not found"));
 
-        boolean alreadyTerminated = offboardingRepo.existsByEmployeeEmpIdAndOffboardingType(
-                dto.getEmpId(),
-                OffboardingType.TERMINATION
-        );
+
+        boolean alreadyTerminated = offboardingRepo
+                .existsByEmployeeEmpIdAndOffboardingTypeAndOffboardingStatusIn(
+                        dto.getEmpId(),
+                        OffboardingType.TERMINATION,
+                        List.of(OffboardingStatus.PENDING, OffboardingStatus.APPROVED)
+                );
+
+        if (dto.getTerminationDate().isBefore(LocalDate.now())) {
+            throw new BadRequestException("Termination date cannot be in the past");
+        }
+
+        if (dto.getIsGoodToRehire() != null) {
+            throw new BadRequestException("Rehire eligibility cannot be set during termination");
+        }
 
         if (alreadyTerminated) {
-            throw new RuntimeException("Employee already terminated");
+            throw new BadRequestException("Employee already terminated");
         }
 
         EmployeeOffboarding entity = EmployeeOffboarding.builder()
@@ -159,9 +218,11 @@ public class EmployeeOffboardingServiceImpl implements EmployeeOffboardingServic
                 .proposedLastWorkingDate(dto.getTerminationDate())
                 .reason(dto.getReason())
                 .feedback(dto.getFeedback())
-                .isGoodToRehire(dto.getIsGoodToRehire())
-                .offboardingStatus(OffboardingStatus.PENDING) // ✅ FIX
+                .isGoodToRehire(false)
+                .offboardingStatus(OffboardingStatus.PENDING)
                 .isClearanceDone(false)
+                .actionBy(hrId)
+                .actionOn(Instant.now())
                 .build();
 
         offboardingRepo.save(entity);
@@ -172,18 +233,36 @@ public class EmployeeOffboardingServiceImpl implements EmployeeOffboardingServic
 
     @Transactional
     @Override
-    public TerminationResponseDto takeTerminationAction(UUID offboardingId, HrActionDto dto, UUID hrId) {
+    public TerminationResponseDto takeTerminationAction(UUID offboardingId, HrActionDto dto) {
+
+        UUID hrId = getLoggedInUserId();
 
         EmployeeOffboarding entity = offboardingRepo.findById(offboardingId)
-                .orElseThrow(() -> new RuntimeException("Request not found"));
+                .orElseThrow(() -> new BadRequestException("Request not found"));
+
 
         if (entity.getOffboardingStatus() != OffboardingStatus.PENDING) {
-            throw new RuntimeException("Already processed");
+            throw new BadRequestException("Already processed");
+        }
+
+        if (dto.getStatus() == OffboardingStatus.APPROVED) {
+
+            if (dto.getFinalLastWorkingDate() == null) {
+                throw new BadRequestException("Final last working date is required");
+            }
+
+            if (dto.getFinalLastWorkingDate().isBefore(LocalDate.now())) {
+                throw new BadRequestException("Final last working date cannot be in the past");
+            }
+        }
+
+        if (dto.getIsGoodToRehire() != null) {
+            throw new BadRequestException("Rehire eligibility cannot be set for termination");
         }
 
         entity.setOffboardingStatus(dto.getStatus());
         entity.setFeedback(dto.getFeedback());
-        entity.setIsGoodToRehire(dto.getIsGoodToRehire());
+        entity.setIsGoodToRehire(false);
         entity.setActionBy(hrId);
         entity.setActionOn(Instant.now());
 
@@ -215,7 +294,6 @@ public class EmployeeOffboardingServiceImpl implements EmployeeOffboardingServic
                 .map(e -> mapToTerminationDto(e, "Fetched successfully"))
                 .toList();
     }
-
 
 
 
